@@ -12,6 +12,7 @@ export const repeatedPunctuationRule = defineRule({
     id: "repeated-punctuation",
     description: "合并重复标点。",
     category: "punctuation",
+    confidence: "deterministic",
     fixable: true
   },
   check(document, _options, context): void {

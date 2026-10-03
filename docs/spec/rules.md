@@ -1,8 +1,19 @@
 # 规则规范
 
-`stcn100` 规则只声明可解释、可验证的候选问题。规则 ID 不直接复制第三方标准条款。
+`stcn100` 规则输出可定位、可重复、可配置的诊断。规则 ID 不直接复制第三方标准条款。
 
-## 1. 严重级别
+## 1. 诊断模型
+
+每条诊断包含：
+
+- `ruleId`：稳定规则 ID。
+- `severity`：`error`、`warning`、`info`。
+- `confidence`：`deterministic`、`heuristic`、`semantic`。
+- `loc`：UTF-16 字符偏移和行列位置。
+- 可选 `fix`：安全字符区间替换。
+- 可选 `data`：机器可读补充数据。
+
+严重级别：
 
 | 级别 | 用途 | 默认退出码 |
 | --- | --- | --- |
@@ -11,106 +22,124 @@
 | `info` | 一致性或维护建议 | 0 |
 | `off` | 关闭规则 | 不影响 |
 
+置信度：
+
+| 置信度 | 含义 |
+| --- | --- |
+| `deterministic` | 在解析和配置确定后，结果可重复 |
+| `heuristic` | 程序可稳定定位候选，但是否违规依赖语境 |
+| `semantic` | 需要事实源、schema 或完整语义判断 |
+
 `--max-warnings` 可把 warning 数量纳入失败判定。
 
 ## 2. 通用规则
 
-### `sentence-length`
-
-- 类别：清晰度。
-- 默认：`warning`。
-- 选项：`suggestedMax`，默认 30；`hardMax`，默认 40。
-- 计数：一个汉字算一个单位；一个拉丁字母或数字词算一个单位；标点不计。
-- 修复：否。拆分句子需要语义判断。
-
-### `clause-count`
-
-- 类别：清晰度。
-- 默认：`warning`。
-- 选项：`max`，默认 3。
-- 检测：单句内逗号、分号数量超过阈值。
-- 修复：否。
-
-### `vague-term`
-
-- 类别：清晰度。
-- 默认：`warning`。
-- 默认词：`等等`、`相关信息`、`相关内容`、`适当`、`必要时`、`原则上`、`一些`、`若干`、`一系列`。
-- 选项：`terms: [{ term, suggestion }]`。
-- 修复：否。需要补条件、数量、范围或清单。
-
-### `repeated-punctuation`
-
-- 类别：标点。
-- 默认：`error`。
-- 检测：连续中文逗号、句号、分号、冒号、问号、叹号，或连续半角对应符号。
-- 修复：保留第一个符号；半角逗号、分号、冒号转为对应中文标点。
-
-### `redundant-connective`
-
-- 类别：清晰度。
-- 默认：`warning`。
-- 检测：`因为...所以`、`由于...因此`、`虽然...但是`、`如果...那么`。
-- 修复：否。删除哪一部分取决于语义。
-
-### `passive-voice`
-
-- 类别：清晰度。
-- 默认：`warning`。
-- 检测：`被`、`由...所`、`受到`、`得以`。
-- 修复：否。中文被动并非绝对错误，需要判断主语和执行者。
-
-### `terminology`
-
-- 类别：一致性。
-- 默认：`warning`。
-- 选项：`terms: [{ preferred, aliases }]`。
-- 检测：非首选术语。
-- 修复：替换为首选术语。项目应将别名限制为语义明确、替换安全的词。
+| 规则 | 默认级别 | 置信度 | 自动修复 | 用途 |
+| --- | --- | --- | --- | --- |
+| `sentence-length` | warning | heuristic | 否 | 限制单句长度 |
+| `clause-count` | warning | heuristic | 否 | 限制单句分句数量 |
+| `vague-term` | warning | heuristic | 否 | 标记模糊条件、数量和范围 |
+| `repeated-punctuation` | error | deterministic | 是 | 合并重复标点 |
+| `redundant-connective` | warning | heuristic | 否 | 标记冗余连接结构 |
+| `passive-voice` | warning | heuristic | 否 | 标记疑似被动表达 |
+| `terminology` | warning | heuristic | 是 | 统一项目术语 |
+| `typo` | error | deterministic | 是 | 修复高置信度错词 |
+| `term-casing` | warning | deterministic | 是 | 统一技术术语大小写 |
+| `term-context` | info | heuristic | 否 | 提示缩写和简称语境 |
+| `context-word` | info | heuristic | 否 | 提示依赖语境的近义词 |
+| `jargon` | info | heuristic | 否 | 标记空泛业务黑话 |
+| `reader-address` | info | heuristic | 否 | 提示直接称呼读者 |
+| `punctuation-style` | warning | deterministic | 是 | 统一省略号、破折号和标点宽度 |
+| `quote-style` | warning | deterministic | 是 | 统一 `「」` 和嵌套 `『』` |
+| `paired-punctuation` | error | deterministic | 否 | 检查成对标点闭合 |
+| `numeric-spacing` | warning | deterministic | 是 | 规范数值、单位和时间间距 |
+| `quantity-logic` | warning | deterministic | 否 | 检测数量倍数和边界冲突 |
+| `cjk-latin-spacing` | info | deterministic | 是 | 规范中西文留白 |
+| `paragraph-hard-wrap` | warning | deterministic | 是 | 合并 Markdown 段落硬换行 |
 
 ## 3. Coding 规则
 
 `coding` 继承 `general`。
 
-### `coding/future-tense`
+| 规则 | 默认级别 | 置信度 | 自动修复 | 用途 |
+| --- | --- | --- | --- | --- |
+| `coding/future-tense` | warning | heuristic | 否 | 减少未来时态 |
+| `coding/action-nominalization` | warning | heuristic | 否 | 标记“进行 + 动作名词” |
+| `coding/possibility-language` | warning | heuristic | 否 | 标记无条件可能性表达 |
 
-- 默认：`warning`。
-- 默认词：`将会被`、`将要被`、`将会`、`将要`、`届时将`。
-- 目标：技术文档优先使用当前行为、明确条件或直接命令。
-- 修复：否。
+## 4. 规则详情
 
-### `coding/action-nominalization`
+### `typo`
 
-- 默认：`warning`。
-- 检测：`进行/加以/作出/给予 + 动作名词`。
-- 默认动作：检查、验证、测试、处理、配置、更新、修改、分析、操作、调整、优化、删除、添加、创建。
-- 修复：否。直接删去空动词可能破坏宾语结构。
+- 默认词表：`阀值→阈值`、`布署→部署`、`反回→返回`、`回朔→回溯`、`做为→作为`、`embeding→embedding`、`提示工程学→提示工程`。
+- 选项：`terms: [{ term, replacement, message? }]`。
 
-### `coding/possibility-language`
+### `term-casing`
 
-- 默认：`warning`。
-- 默认词：`可能会`、`可能`、`也许`、`或许`、`大概`。
-- 目标：说明触发条件、概率、影响或替代结果。
-- 修复：否。
+- 默认覆盖常见缩写、语言名和产品名：`id→ID`、`api→API`、`json→JSON`、`JavaScript`、`TypeScript`、`Node.js`、`GitHub`、`gRPC`、`GraphQL` 等。
+- 选项：`terms: [{ pattern, replacement }]`。项目配置优先。
 
-## 4. 规则元数据要求
+### `quote-style`
 
-每条规则必须提供：
+- 顶层引号改为 `「」`。
+- 嵌套引号改为 `『』`。
+- 支持中文弯引号和 ASCII 双引号配对。
+- 未配对引号只报告，不自动修复。
 
-- 稳定 ID。
-- 描述。
-- 分类：clarity、consistency、structure、punctuation。
-- 是否可修复。
-- 默认级别和选项。
-- 正例、反例、保护内容和修复测试。
+### `cjk-latin-spacing`
 
-## 5. 自动修复边界
+- 中文与英文、数字之间插入一个半角空格。
+- 全角标点前后不保留异常空格。
+- 连续普通空格在正文中合并为一个。
+- 不在 URL、API 路径、代码、链接目标和 HTML 属性中运行。
+
+### `paragraph-hard-wrap`
+
+- 只检查 Markdown 正文段落和列表续行。
+- 中文接中文不加空格；中文接拉丁或数字加一个空格。
+- 行尾两个空格或反斜杠的显式换行不报告。
+
+## 5. 禁用指令
+
+行级：
+
+```markdown
+需要保留的文本 <!-- stcn100-disable-line -->
+```
+
+兼容：
+
+```markdown
+需要保留的文本 <!-- copy-lint-disable-line -->
+```
+
+文件级：
+
+```markdown
+<!-- stcn100-disable-file -->
+```
+
+或者：
+
+```markdown
+<!-- copy-lint-disable-file -->
+```
+
+指令位于代码块或 HTML 块中时不生效。
+
+## 6. 自动修复边界
 
 可自动修复：
 
+- 高置信度固定错词。
+- 常见技术术语大小写。
+- 无歧义项目术语别名。
 - 重复标点。
-- 项目术语表中无歧义的别名替换。
-- 后续加入的标点宽度和空格规范化。
+- 中文标点宽度、省略号和破折号。
+- 直角引号和嵌套引号。
+- 数值、单位、百分号、角度和时间间距。
+- 中西文留白。
+- Markdown 段落硬换行。
 
 不可自动修复：
 
@@ -120,13 +149,6 @@
 - 空动词结构改写。
 - 可能性改写。
 - 术语同义判断。
-- 数字体系改换。
-- 引用重排。
-
-## 6. 置信度原则
-
-1. 解析器确定的字符格式问题可以判定为 error。
-2. 正文表达启发式默认 warning。
-3. 依赖语义、领域或团队约定的问题默认 info 或不提供规则。
-4. 代码、URL、命令、路径、日志、配置值和转载原文不按正文风格自动修复。
-5. 规则无法保留原意时，不提供 fix。
+- 数量口径和事实补全。
+- 指代消解。
+- API 状态语义。
