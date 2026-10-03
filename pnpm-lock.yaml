@@ -8,9 +8,21 @@ importers:
 
   .:
     devDependencies:
+      '@stcn100/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@stcn100/rules':
+        specifier: workspace:*
+        version: link:packages/rules
       '@types/node':
         specifier: ^22.15.0
         version: 22.20.5
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -18,17 +30,7 @@ importers:
         specifier: ^3.1.4
         version: 3.2.7(@types/node@22.20.5)
 
-  packages/cli:
-    dependencies:
-      '@stcn100/core':
-        specifier: workspace:*
-        version: link:../core
-      '@stcn100/rules':
-        specifier: workspace:*
-        version: link:../rules
-      fast-glob:
-        specifier: ^3.3.3
-        version: 3.3.3
+  packages/cli: {}
 
   packages/core: {}
 

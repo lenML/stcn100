@@ -1,6 +1,7 @@
 {
   "name": "@stcn100/core",
   "version": "0.2.0",
+  "private": true,
   "description": "Core engine for Simplified Technical Chinese lint rules",
   "type": "module",
   "license": "MIT",

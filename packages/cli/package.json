@@ -1,29 +1,55 @@
 {
-  "name": "@stcn100/cli",
+  "name": "@lenml/stcn100",
   "version": "0.2.0",
-  "description": "CLI for Simplified Technical Chinese lint rules",
-  "type": "module",
+  "description": "Simplified Technical Chinese linter CLI",
   "license": "MIT",
+  "type": "module",
   "main": "./dist/index.js",
-  "bin": {
-    "stcn100": "./dist/index.js"
-  },
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "bin": {
+    "stcn100": "dist/index.js"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts",
+    "dist/cli.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b && node ../../scripts/build-cli.mjs",
+    "prepack": "pnpm build"
   },
-  "dependencies": {
-    "@stcn100/core": "workspace:*",
-    "@stcn100/rules": "workspace:*",
-    "fast-glob": "^3.3.3"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lenML/stcn100.git",
+    "directory": "packages/cli"
   },
+  "homepage": "https://github.com/lenML/stcn100#readme",
+  "bugs": {
+    "url": "https://github.com/lenML/stcn100/issues"
+  },
+  "keywords": [
+    "stcn100",
+    "chinese",
+    "technical-writing",
+    "lint",
+    "linter",
+    "cli",
+    "markdown",
+    "asd-ste100"
+  ],
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

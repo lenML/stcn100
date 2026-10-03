@@ -9,7 +9,7 @@
 3. 规则包：提供通用、编程或其他场景规则。
 4. 工具：CLI、IDE、CI 或服务端适配层。
 
-核心包不包含任何内置规则。`@stcn100/cli` 负责把 `@stcn100/rules` 注入核心引擎。
+核心包不包含任何内置规则。`@lenml/stcn100` 负责把 `@stcn100/rules` 注入核心引擎。
 
 ## 2. 数据流
 
@@ -50,13 +50,17 @@ CLI args
 - `coding` 预设，继承 `general`。
 - 每个规则只通过 `RuleModule` 协议接入。
 
-### `@stcn100/cli`
+### `@lenml/stcn100`
 
 - 读取 `stcn100.config.json`。
 - 收集文件。
 - 注入内置插件。
 - 输出 text/JSON。
 - 处理 `--fix`、`--quiet`、`--max-warnings` 和退出码。
+
+### 发布边界
+
+`@stcn100/core` 和 `@stcn100/rules` 是 `private` 工作区包，不作为独立 npm 包发布。CLI 构建先运行 TypeScript，再用 esbuild 将 CLI、`@stcn100/core`、`@stcn100/rules` 和 `fast-glob` 内联到 `packages/cli/dist/index.js`。发布包 `@lenml/stcn100` 不声明 runtime dependencies；Node.js 内置模块保持 external。
 
 ## 4. 规则模型
 

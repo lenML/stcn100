@@ -18,6 +18,17 @@ Simplified Technical Chinese tools。
 
 ## 快速开始
 
+无需安装：
+
+```bash
+npx @lenml/stcn100@latest --help
+npx @lenml/stcn100@latest "docs/**/*.md" --profile general,coding
+npx @lenml/stcn100@latest "docs/**/*.md" --rule typo
+npx @lenml/stcn100@latest "docs/**/*.md" --profile general,coding --fix
+```
+
+本地开发：
+
 ```bash
 pnpm install
 pnpm build
@@ -120,6 +131,7 @@ pnpm check
 - [架构设计](docs/spec/architecture.md)
 - [规则规范](docs/spec/rules.md)
 - [CLI 规范](docs/spec/cli.md)
+- [发布说明](docs/spec/release.md)
 - [Tokenizer 规范](docs/spec/tokenization.md)
 - [路线图](docs/roadmap.md)
 - [ASD-STE100 调研](docs/research/asd-ste100.md)
