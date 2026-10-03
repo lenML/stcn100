@@ -9,7 +9,10 @@
 复制下面内容给 Agent：
 
 ```text
-请阅读 https://raw.githubusercontent.com/lenML/stcn100/main/skill/SKILL.md，然后扫描当前项目中的中文技术文档，根据 stcn100 的建议修复问题。修复后重新运行 stcn100，并汇总已修复项和仍需人工判断的项。
+请阅读
+https://raw.githubusercontent.com/lenML/stcn100/main/skill/SKILL.md
+然后扫描当前项目中的中文技术文档，根据 stcn100 的建议修复问题。
+修复后重新运行 stcn100，并汇总已修复项和仍需人工判断的项。
 ```
 
 ## 快速开始
