@@ -1,3 +1,6 @@
+# Tool caches
+.fetch-cache/
+
 # Logs
 logs
 *.log
