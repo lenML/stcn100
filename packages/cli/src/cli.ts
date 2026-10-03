@@ -11,13 +11,14 @@ import { formatJson, formatText, type FileReport } from "./reporters.js";
 const HELP = `stcn100 - Simplified Technical Chinese linter
 
 Usage:
-  stcn100 [lint] [files...] [options]
+  stcn100 [lint] [files...] [--rule <id>]... [options]
   stcn100 rules
   stcn100 init
 
 Options:
   -c, --config <path>       Config file path
   -p, --profile <names>     Comma-separated presets, such as general,coding
+  -r, --rule <id>           Comma-separated rule IDs; repeatable
   -f, --format <format>     text or json
       --fix                 Apply safe fixes
       --max-warnings <n>    Exit with code 1 when warnings exceed n
@@ -35,6 +36,7 @@ const PACKAGE_VERSION = (
 interface CliValues {
   config?: string;
   profile?: string[];
+  rule?: string[];
   format: string;
   fix: boolean;
   "max-warnings"?: string;
@@ -116,6 +118,7 @@ export async function runCli(argv = process.argv.slice(2), cwd = process.cwd()):
       options: {
         config: { type: "string", short: "c" },
         profile: { type: "string", short: "p", multiple: true },
+        rule: { type: "string", short: "r", multiple: true },
         format: { type: "string", short: "f", default: "text" },
         fix: { type: "boolean", default: false },
         "max-warnings": { type: "string" },
@@ -170,6 +173,28 @@ export async function runCli(argv = process.argv.slice(2), cwd = process.cwd()):
 
   const registry = createRegistry([builtinPlugin]);
   const resolved = resolveConfig(config, registry);
+  const selectedRuleIds = [
+    ...new Set(
+      parsed.values.rule
+        ?.flatMap((value) => value.split(","))
+        .map((ruleId) => ruleId.trim())
+        .filter(Boolean) ?? []
+    )
+  ];
+  if (selectedRuleIds.length > 0) {
+    const selectedRules: typeof resolved.rules = {};
+    for (const ruleId of selectedRuleIds) {
+      if (!registry.rules.has(ruleId)) {
+        return fail(`Unknown rule: ${ruleId}`);
+      }
+      const setting = resolved.rules[ruleId];
+      if (!setting) {
+        return fail(`Rule is disabled: ${ruleId}`);
+      }
+      selectedRules[ruleId] = setting;
+    }
+    resolved.rules = selectedRules;
+  }
   const filePaths = await collectFiles(files, cwd, resolved.ignore);
   if (filePaths.length === 0) {
     process.stderr.write("No input files found.\n");

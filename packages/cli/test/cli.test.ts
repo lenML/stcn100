@@ -25,6 +25,75 @@ describe("runCli", () => {
     expect(exitCode).toBe(1);
   });
 
+  it("runs only the selected typo rule", async () => {
+    const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
+    temporaryDirectories.push(cwd);
+    await writeFile(path.join(cwd, "sample.md"), "阀值！！！\n");
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const exitCode = await runCli(["lint", "sample.md", "--format", "json", "-r", "typo"], cwd);
+
+    expect(exitCode).toBe(1);
+    const output = write.mock.calls.map(([chunk]) => String(chunk)).join("");
+    const result = JSON.parse(output) as {
+      reports: Array<{ diagnostics: Array<{ ruleId: string }> }>;
+    };
+    const ruleIds = result.reports.flatMap((report) =>
+      report.diagnostics.map((diagnostic) => diagnostic.ruleId)
+    );
+    expect(ruleIds).toEqual(["typo"]);
+  });
+
+  it("supports repeated, comma-separated, and duplicate rule selections", async () => {
+    const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
+    temporaryDirectories.push(cwd);
+    await writeFile(path.join(cwd, "sample.md"), "阀值！！！\n");
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const exitCode = await runCli(
+      ["lint", "sample.md", "--format", "json", "-r", "typo,typo", "-r", "repeated-punctuation"],
+      cwd
+    );
+
+    expect(exitCode).toBe(1);
+    const output = write.mock.calls.map(([chunk]) => String(chunk)).join("");
+    const result = JSON.parse(output) as {
+      reports: Array<{ diagnostics: Array<{ ruleId: string }> }>;
+    };
+    const ruleIds = result.reports
+      .flatMap((report) => report.diagnostics.map((diagnostic) => diagnostic.ruleId))
+      .sort();
+    expect(ruleIds).toEqual(["repeated-punctuation", "typo"]);
+  });
+
+  it("fails for an unknown selected rule", async () => {
+    const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
+    temporaryDirectories.push(cwd);
+    await writeFile(path.join(cwd, "sample.md"), "阀值\n");
+    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    const exitCode = await runCli(["lint", "sample.md", "-r", "unknown-rule"], cwd);
+
+    expect(exitCode).toBe(2);
+    expect(stderr).toHaveBeenCalledWith("Unknown rule: unknown-rule\n");
+  });
+
+  it("fails for a disabled selected rule", async () => {
+    const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
+    temporaryDirectories.push(cwd);
+    await writeFile(
+      path.join(cwd, "stcn100.config.json"),
+      JSON.stringify({ extends: ["general"], rules: { typo: "off" } })
+    );
+    await writeFile(path.join(cwd, "sample.md"), "阀值\n");
+    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    const exitCode = await runCli(["lint", "sample.md", "-r", "typo"], cwd);
+
+    expect(exitCode).toBe(2);
+    expect(stderr).toHaveBeenCalledWith("Rule is disabled: typo\n");
+  });
+
   it("loads config and fixes files with --fix", async () => {
     const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
     temporaryDirectories.push(cwd);

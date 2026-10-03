@@ -23,6 +23,7 @@ pnpm install
 pnpm build
 pnpm stcn100 --help
 pnpm stcn100 "docs/**/*.md" --profile general,coding
+pnpm stcn100 "docs/**/*.md" --rule typo
 pnpm stcn100 "docs/**/*.md" --profile general,coding --fix
 ```
 

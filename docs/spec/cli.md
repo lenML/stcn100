@@ -16,6 +16,7 @@ stcn100 init
 | --- | --- |
 | `-c, --config <path>` | 指定 JSON 配置文件 |
 | `-p, --profile <names>` | 逗号或空格分隔的预设，可重复传入；覆盖配置 `extends` |
+| `-r, --rule <id>` | 逗号分隔的规则 ID，可重复传入；只运行指定规则 |
 | `-f, --format <format>` | `text` 或 `json` |
 | `--fix` | 应用规则提供的安全修复 |
 | `--max-warnings <n>` | warning 数量超过 n 时退出 1 |
@@ -28,9 +29,14 @@ stcn100 init
 ```bash
 pnpm stcn100 "docs/**/*.md" --profile general,coding
 pnpm stcn100 "docs/**/*.md" --profile coding --format json
+pnpm stcn100 "docs/**/*.md" --rule typo
+pnpm stcn100 "docs/**/*.md" --rule typo,repeated-punctuation
+pnpm stcn100 "docs/**/*.md" -r typo -r sentence-length
 pnpm stcn100 "docs/**/*.md" --fix
 pnpm stcn100 "docs/**/*.md" --max-warnings 0
 ```
+
+规则在配置解析后筛选，保留原 severity、options 和 ignore。未知规则或已配置为 `off` 的规则会以退出码 2 失败。
 
 ## 3. 配置发现
 
