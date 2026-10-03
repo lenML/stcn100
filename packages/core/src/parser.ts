@@ -240,7 +240,56 @@ function isIndentedCodeLine(line: string): boolean {
   return /^(?: {4}|\t)/.test(line);
 }
 
-function linePrefixMatch(line: string): { start: number; kind: BlockKind } | undefined {
+function isEscapedCharacter(text: string, index: number): boolean {
+  let backslashes = 0;
+  for (let cursor = index - 1; cursor >= 0 && text[cursor] === "\\"; cursor -= 1) {
+    backslashes += 1;
+  }
+  return backslashes % 2 === 1;
+}
+
+function tableCellRanges(line: string): Array<[start: number, end: number]> | undefined {
+  const delimiters: number[] = [];
+  for (let index = 0; index < line.length; index += 1) {
+    if (line[index] === "|" && !isEscapedCharacter(line, index)) {
+      delimiters.push(index);
+    }
+  }
+
+  const first = delimiters[0];
+  const last = delimiters.at(-1);
+  if (
+    first === undefined ||
+    last === undefined ||
+    delimiters.length < 2 ||
+    line.slice(0, first).trim().length > 0 ||
+    line.slice(last + 1).trim().length > 0
+  ) {
+    return undefined;
+  }
+
+  const ranges: Array<[start: number, end: number]> = [];
+  for (let index = 0; index < delimiters.length - 1; index += 1) {
+    const start = delimiters[index];
+    const end = delimiters[index + 1];
+    if (start !== undefined && end !== undefined) {
+      ranges.push([start + 1, end]);
+    }
+  }
+  return ranges;
+}
+
+function isTableSeparator(
+  line: string,
+  ranges: Array<[start: number, end: number]>
+): boolean {
+  return (
+    ranges.length > 0 &&
+    ranges.every(([start, end]) => /^:?-{3,}:?$/u.test(line.slice(start, end).trim()))
+  );
+}
+
+function linePrefixMatch(line: string): { start: number; kind: BlockKind } {
   const heading = line.match(/^( {0,3}#{1,6}\s+)/);
   if (heading) {
     return { start: heading[1]?.length ?? 0, kind: "heading" };
@@ -254,10 +303,6 @@ function linePrefixMatch(line: string): { start: number; kind: BlockKind } | und
   const list = line.match(/^( {0,6}(?:[-+*]|\d+[.)])\s+)/);
   if (list) {
     return { start: list[1]?.length ?? 0, kind: "list-item" };
-  }
-
-  if (/^\s*\|.*\|\s*$/.test(line)) {
-    return { start: 0, kind: "table" };
   }
 
   return { start: 0, kind: "paragraph" };
@@ -377,8 +422,23 @@ function parseMarkdown(source: string, filePath: string): Document {
       hasVisibleText(analysisLine) &&
       trimmed !== "---"
     ) {
-      const prefix = linePrefixMatch(line);
-      if (prefix) {
+      const cells = tableCellRanges(analysisLine);
+      if (cells && !isTableSeparator(line, cells)) {
+        for (const [cellStart, cellEnd] of cells) {
+          const text = line.slice(cellStart, cellEnd);
+          const absoluteStart = offset + cellStart;
+          const block: TextBlock = {
+            kind: "table",
+            text,
+            analysisText: maskMarkdownInline(analysisLine.slice(cellStart, cellEnd)),
+            range: [absoluteStart, absoluteStart + text.length],
+            loc: locationAt(source, absoluteStart, absoluteStart + text.length, lineStarts)
+          };
+          blocks.push(block);
+          createdBlock = block;
+        }
+      } else if (!cells) {
+        const prefix = linePrefixMatch(line);
         const textStart = prefix.start;
         const text = line.slice(textStart);
         if (text.trim().length > 0) {

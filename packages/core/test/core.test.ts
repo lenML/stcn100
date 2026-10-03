@@ -148,6 +148,45 @@ describe("parseDocument", () => {
     expect(visible).toContain("阀值需要调整。");
   });
 
+  it("skips Markdown table separator rows", () => {
+    const source = "| 名称 | 值 |\n|:---|---:|\n| 甲 | 乙 |\n";
+    const document = parseDocument("doc.md", source);
+
+    expect(document.blocks).toHaveLength(4);
+    expect(document.blocks.every((block) => block.kind === "table")).toBe(true);
+    expect(document.blocks.some((block) => block.text.includes("---"))).toBe(false);
+  });
+
+  it("splits Markdown table rows into cell blocks with exact ranges", () => {
+    const source = "| 名称 | 值 |\n| --- | --- |\n| 甲 | 乙 |\n";
+    const document = parseDocument("doc.md", source);
+    const cells = document.blocks.map((block) => ({
+      analysisText: block.analysisText,
+      rangeText: source.slice(block.range[0], block.range[1]),
+      text: block.text
+    }));
+
+    expect(cells).toEqual([
+      { analysisText: " 名称 ", rangeText: " 名称 ", text: " 名称 " },
+      { analysisText: " 值 ", rangeText: " 值 ", text: " 值 " },
+      { analysisText: " 甲 ", rangeText: " 甲 ", text: " 甲 " },
+      { analysisText: " 乙 ", rangeText: " 乙 ", text: " 乙 " }
+    ]);
+  });
+
+  it("keeps escaped pipes and pipes in inline code inside table cells", () => {
+    const source = "| 甲 \\| 乙 | 使用 `a|b` |\n";
+    const document = parseDocument("doc.md", source);
+
+    expect(document.blocks).toHaveLength(2);
+    expect(document.blocks[0]?.text).toBe(" 甲 \\| 乙 ");
+    expect(document.blocks[1]?.text).toBe(" 使用 `a|b` ");
+    expect(document.blocks[1]?.analysisText).toHaveLength(
+      document.blocks[1]?.text.length ?? 0
+    );
+    expect(document.blocks[1]?.analysisText).not.toContain("a|b");
+  });
+
   it("records Markdown paragraph hard wraps", () => {
     const document = parseDocument("doc.md", "第一行\n第二行\n\n第三行  \n第四行\n");
 

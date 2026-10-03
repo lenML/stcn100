@@ -65,6 +65,24 @@ describe("general rules", () => {
     expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("clause-count");
   });
 
+  it("does not treat Markdown table separators as body punctuation", () => {
+    const source = "| 名称 | 值 |\n| --- | --- |\n| 甲 | 乙 |\n";
+    const result = run(source, { "punctuation-style": "warning" }, true);
+
+    expect(result.output).toBe(source);
+    expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("punctuation-style");
+  });
+
+  it("counts sentence length and clauses per Markdown table cell", () => {
+    const cell = " 甲乙丙丁戊己庚辛，甲乙丙丁 ";
+    const source = `|${cell}|${cell}|${cell}|${cell}|\n`;
+    const result = run(source);
+    const ids = result.diagnostics.map((item) => item.ruleId);
+
+    expect(ids).not.toContain("sentence-length");
+    expect(ids).not.toContain("clause-count");
+  });
+
   it("does not report common passive-like false positives", () => {
     const result = run("植被很好。被子放在床上。由于网络故障所以服务停止。\n");
     expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("passive-voice");
