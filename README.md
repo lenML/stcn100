@@ -11,8 +11,10 @@ Simplified Technical Chinese tools。
 - 默认支持通用文档与编程文档场景。
 - 通过项目术语表和配置适配团队、产品、领域。
 - 对代码、URL、链接目标等受保护内容跳过正文检查。
+- 诊断区分确定规则、启发式候选和语义复核项。
+- 内置可插拔 `Tokenizer`，默认使用 Node.js `Intl.Segmenter`。
 
-当前为 `0.1.0` MVP，接口可能变化。
+当前为 `0.2.0` 迭代版，接口仍可能变化。
 
 ## 快速开始
 
@@ -74,6 +76,19 @@ pnpm stcn100 rules
 | `redundant-connective` | warning | 否 | 标记冗余连接结构 |
 | `passive-voice` | warning | 否 | 标记疑似被动表达 |
 | `terminology` | warning | 是 | 统一项目术语 |
+| `typo` | error | 是 | 修复高置信度错词 |
+| `term-casing` | warning | 是 | 统一技术术语大小写 |
+| `term-context` | info | 否 | 提示缩写和简称语境 |
+| `context-word` | info | 否 | 提示依赖语境的近义词 |
+| `jargon` | info | 否 | 标记空泛业务黑话 |
+| `reader-address` | info | 否 | 提示直接称呼读者 |
+| `punctuation-style` | warning | 是 | 统一中文标点和省略号 |
+| `quote-style` | warning | 是 | 统一 `「」` 和 `『』` |
+| `paired-punctuation` | error | 否 | 检查成对标点闭合 |
+| `numeric-spacing` | warning | 是 | 规范数值、单位和时间间距 |
+| `quantity-logic` | warning | 否 | 检测数量倍数和边界冲突 |
+| `cjk-latin-spacing` | info | 是 | 规范中西文留白 |
+| `paragraph-hard-wrap` | warning | 是 | 合并 Markdown 段落硬换行 |
 | `coding/future-tense` | warning | 否 | 减少技术文档未来时态 |
 | `coding/action-nominalization` | warning | 否 | 标记“进行 + 动作名词” |
 | `coding/possibility-language` | warning | 否 | 标记无条件可能性表达 |
@@ -104,10 +119,12 @@ pnpm check
 - [架构设计](docs/spec/architecture.md)
 - [规则规范](docs/spec/rules.md)
 - [CLI 规范](docs/spec/cli.md)
+- [Tokenizer 规范](docs/spec/tokenization.md)
 - [路线图](docs/roadmap.md)
 - [ASD-STE100 调研](docs/research/asd-ste100.md)
 - [中文写作标准调研](docs/research/chinese-writing-standards.md)
 - [Lint 工具生态调研](docs/research/tooling-landscape.md)
+- [Tech-Doc-Style-Chinese 调研](docs/research/tech-doc-style-chinese.md)
 
 ## 边界
 

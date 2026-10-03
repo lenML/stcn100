@@ -39,6 +39,7 @@ CLI args
 - 规则注册表。
 - 诊断位置计算。
 - 安全修复执行。
+- `Tokenizer` 协议与默认 `Intl.Segmenter` 实现。
 
 不依赖 Node 文件系统，也不依赖具体内置规则。
 
@@ -74,6 +75,8 @@ interface RuleModule<TOptions> {
 - 消息与机器可读数据。
 - 可选安全修复。
 
+规则还可以通过 `context.tokenize()` 使用文档语言分析器。默认 tokenizer 是 Node.js `Intl.Segmenter`；规则不得直接依赖某个 jieba 包。
+
 规则不得直接写文件，也不得处理配置继承。引擎统一负责。
 
 ## 5. 配置与预设
@@ -108,7 +111,9 @@ Markdown 处理器当前保护：
 - 单行和多行 HTML 注释、标签。
 - 图片。
 - 裸 URL 和自动链接。
+- API 路径。
 - 链接目标，只保留链接文字。
+- 跨行行内代码。
 
 保护实现通过等长掩码保留字符偏移，规则看到 `analysisText`，报告仍指向原文件 `text`。
 
@@ -164,6 +169,7 @@ export const teamPlugin = definePlugin({
 
 - 默认规则必须低误报、可解释。
 - 语义不确定时只警告，不自动修复。
+- 规则元数据区分 deterministic、heuristic 和 semantic。
 - 规则数据与标准正文分离，不保存第三方规范全文。
 - 所有词表、阈值和场景规则都可配置。
 - 诊断必须稳定排序。
@@ -174,7 +180,7 @@ export const teamPlugin = definePlugin({
 
 - Markdown 解析仍是轻量行解析，不是完整 AST。
 - 跨文件术语、缩写、引用一致性尚未实现。
-- 中文分词和词性标注尚未接入。
+- 默认分词无 POS；`@node-rs/jieba` 等适配器尚未发布。
 - JS/TS 配置文件和第三方插件加载尚未实现。
-- 行级禁用指令尚未实现。
+- 跨块成对标点和复杂嵌套列表仍只能保守处理。
 - 文本框、表格语义和复杂垂直列表只做基础处理。
