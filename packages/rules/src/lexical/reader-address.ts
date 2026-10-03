@@ -10,6 +10,18 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function isReaderAddressFalsePositive(
+  term: string,
+  text: string,
+  start: number,
+  end: number
+): boolean {
+  return (
+    (term === "同学" || term === "同学们") &&
+    text.slice(Math.max(0, start - 1), end + 1) === "不同学科"
+  );
+}
+
 export const readerAddressRule = defineRule<ReaderAddressOptions>({
   meta: {
     id: "reader-address",
@@ -22,6 +34,9 @@ export const readerAddressRule = defineRule<ReaderAddressOptions>({
     for (const block of document.blocks) {
       for (const term of terms) {
         for (const match of findMatches(block.analysisText, new RegExp(escapeRegExp(term), "gu"))) {
+          if (isReaderAddressFalsePositive(term, block.analysisText, match.start, match.end)) {
+            continue;
+          }
           context.report({
             block,
             start: match.start,

@@ -21,7 +21,7 @@ export const possibilityLanguageRule = defineRule<PossibilityOptions>({
           block,
           start: match.start,
           end: match.end,
-          message: `可能性表达“${match.value}”。说明条件、概率或结果。`,
+          message: `可能性表达“${match.value}”：确认依据；如有不确定性，写明条件、概率或影响。`,
           data: { term: match.value }
         });
       }

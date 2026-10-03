@@ -9,6 +9,29 @@ export interface JargonOptions {
   terms?: JargonEntry[];
 }
 
+const TECHNICAL_ALIGNMENT_PREFIXES = ["表格", "文本", "水平", "垂直", "左", "右", "居中", "两端"];
+const TECHNICAL_ALIGNMENT_SUFFIXES = ["方式", "属性", "设置"];
+
+function isJargonFalsePositive(term: string, text: string, start: number, end: number): boolean {
+  if (term === "对标") {
+    return (
+      text.slice(Math.max(0, start - 1), end + 1) === "成对标点" ||
+      text.slice(start, end + 1) === "对标准"
+    );
+  }
+  if (term === "对齐") {
+    const before = text.slice(0, start);
+    const after = text.slice(end);
+    return (
+      TECHNICAL_ALIGNMENT_PREFIXES.some((prefix) =>
+        new RegExp(`${prefix}(?:中的|里的|使用)?$`, "u").test(before)
+      ) ||
+      TECHNICAL_ALIGNMENT_SUFFIXES.some((suffix) => after.startsWith(suffix))
+    );
+  }
+  return false;
+}
+
 export const DEFAULT_JARGON_TERMS: JargonEntry[] = [
   { term: "赋能", suggestion: "写清提供的能力或具体动作" },
   { term: "抓手", suggestion: "改为关键措施或具体机制" },
@@ -45,7 +68,7 @@ export const jargonRule = defineRule<JargonOptions>({
     for (const block of document.blocks) {
       for (const match of findTermMatches(block.analysisText, terms.map((item) => item.term))) {
         const item = byTerm.get(match.value);
-        if (!item) {
+        if (!item || isJargonFalsePositive(item.term, block.analysisText, match.start, match.end)) {
           continue;
         }
         context.report({

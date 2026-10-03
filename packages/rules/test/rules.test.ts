@@ -65,6 +65,14 @@ describe("general rules", () => {
     expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("clause-count");
   });
 
+  it("states sentence-length units explicitly", () => {
+    const source = `${"甲".repeat(31)}。\n`;
+    const result = run(source, { "sentence-length": ["warning", { suggestedMax: 30, hardMax: 40 }] });
+    const diagnostic = result.diagnostics.find((item) => item.ruleId === "sentence-length");
+
+    expect(diagnostic?.message).toContain("31 个可读单位");
+  });
+
   it("does not treat Markdown table separators as body punctuation", () => {
     const source = "| 名称 | 值 |\n| --- | --- |\n| 甲 | 乙 |\n";
     const result = run(source, { "punctuation-style": "warning" }, true);
@@ -83,9 +91,12 @@ describe("general rules", () => {
     expect(ids).not.toContain("clause-count");
   });
 
-  it("does not report common passive-like false positives", () => {
-    const result = run("植被很好。被子放在床上。由于网络故障所以服务停止。\n");
+  it("does not report common passive-like false positives but keeps clear candidates", () => {
+    const result = run("植被很好。被子放在床上。由于网络故障所以服务停止。被定义词需要解释。\n");
     expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("passive-voice");
+
+    const candidate = run("该方案被明确批准。\n");
+    expect(candidate.diagnostics.map((item) => item.ruleId)).toContain("passive-voice");
   });
 
   it("fixes high-confidence typos and common term casing", () => {
@@ -112,6 +123,16 @@ describe("general rules", () => {
     expect(result.output).toBe('提示为「请选择『保存』」。\n');
   });
 
+  it("preserves protected content inside quoted text", () => {
+    const inlineCode = run("点击“保存 `API` 后继续”。\n", undefined, true);
+    expect(inlineCode.output).toBe("点击「保存 `API` 后继续」。\n");
+    expect(inlineCode.output).not.toContain("\u0000");
+
+    const link = run("说明“访问 [文档](https://example.com) 完成配置”。\n", undefined, true);
+    expect(link.output).toBe("说明「访问 [文档](https://example.com) 完成配置」。\n");
+    expect(link.output).not.toContain("\u0000");
+  });
+
   it("preserves CLI flags and distinguishes ratios from clock times", () => {
     const option = run("使用 --help。\n", undefined, true);
     expect(option.output).toBe("使用 --help。\n");
@@ -133,6 +154,29 @@ describe("general rules", () => {
     const ids = result.diagnostics.map((item) => item.ruleId);
     expect(ids).toContain("jargon");
     expect(ids).toContain("reader-address");
+  });
+
+  it("does not report technical alignment or standard wording as jargon", () => {
+    const result = run(
+      "成对标点。对标准进行检查。表格对齐、表格中的对齐、文本对齐、水平对齐、垂直对齐、左对齐、右对齐、居中对齐、两端对齐。对齐方式、对齐属性、对齐设置。\n"
+    );
+    expect(result.diagnostics.map((item) => item.ruleId)).not.toContain("jargon");
+
+    const genuine = run("需要对标行业，并尽快对齐各方意见。\n");
+    const terms = genuine.diagnostics
+      .filter((item) => item.ruleId === "jargon")
+      .map((item) => item.data?.term);
+    expect(terms).toEqual(["对标", "对齐"]);
+  });
+
+  it("does not treat different disciplines as a reader address", () => {
+    const falsePositive = run("不同学科使用不同模板。\n");
+    expect(falsePositive.diagnostics.map((item) => item.ruleId)).not.toContain("reader-address");
+
+    const genuine = run("各位同学请阅读。\n");
+    const addresses = genuine.diagnostics.filter((item) => item.ruleId === "reader-address");
+    expect(addresses).toHaveLength(1);
+    expect(addresses[0]?.data?.term).toBe("同学");
   });
 
   it("does not apply lexical rules inside URLs, API paths, or code fences", () => {
@@ -178,7 +222,9 @@ describe("coding profile", () => {
       (diagnostic) => diagnostic.ruleId === "coding/possibility-language"
     );
     expect(possibility).toHaveLength(1);
+    expect(possibility[0]?.severity).toBe("info");
     expect(possibility[0]?.message).toContain("可能会");
+    expect(possibility[0]?.message).toContain("确认依据；如有不确定性，写明条件、概率或影响");
   });
 
   it("does not match every action phrase when the verb list is empty", () => {

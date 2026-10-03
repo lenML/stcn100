@@ -55,7 +55,7 @@ export const codingPreset: Preset = {
   rules: {
     "coding/future-tense": ["warning", {}],
     "coding/action-nominalization": ["warning", {}],
-    "coding/possibility-language": ["warning", {}]
+    "coding/possibility-language": ["info", {}]
   }
 };
 

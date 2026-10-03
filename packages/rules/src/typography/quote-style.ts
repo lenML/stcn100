@@ -86,6 +86,7 @@ export const quoteStyleRule = defineRule({
         let asciiOpen = false;
         for (let index = pair.start; index <= pair.end; index += 1) {
           const character = block.analysisText[index] ?? "";
+          const sourceCharacter = block.text[index] ?? "";
           if (index === pair.start) {
             replacement += quoteFor(pair.depth, false);
           } else if (index === pair.end) {
@@ -98,7 +99,7 @@ export const quoteStyleRule = defineRule({
           } else if (character === "”") {
             replacement += "』";
           } else {
-            replacement += character;
+            replacement += sourceCharacter;
           }
         }
 

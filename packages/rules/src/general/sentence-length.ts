@@ -53,7 +53,7 @@ export const sentenceLengthRule = defineRule<SentenceLengthOptions>({
           block,
           start: sentence.start,
           end: sentence.end,
-          message: `句子长度 ${units}，超过${level} ${threshold}。拆成短句。`,
+          message: `句子长度 ${units} 个可读单位，超过${level} ${threshold}。拆成短句。`,
           data: { units, suggestedMax, hardMax }
         });
       }
