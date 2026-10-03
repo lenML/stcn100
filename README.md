@@ -1,145 +1,89 @@
 # stcn100
 
-Simplified Technical Chinese tools。
+`stcn100` 是一套面向中文技术写作的可程序化规范与 lint 工具。它受 ASD-STE100 启发，但不逐条翻译英文标准，也不替代正式标准。
 
-`stcn100` 是一个面向中文技术写作的规范草案与 lint 工具。设计受 ASD-STE100 启发，但不逐条翻译英文规则，也不替代正式标准。
+它关注可以直接交给程序检查的问题。例如句子长度、模糊表达、错词和术语。它还检查标点、数字格式和中西文间距。内置 `general` 与 `coding` 场景，并允许项目通过规则配置和术语表扩展。
 
-目标：
+## 发送给 Agent
 
-- 提供通用、可验证、可扩展的中文技术写作规则。
-- 分离规范、规则引擎、场景预设和 CLI。
-- 默认支持通用文档与编程文档场景。
-- 通过项目术语表和配置适配团队、产品、领域。
-- 对代码、URL、链接目标等受保护内容跳过正文检查。
-- 诊断区分确定规则、启发式候选和语义复核项。
-- 内置可插拔 `Tokenizer`，默认使用 Node.js `Intl.Segmenter`。
+复制下面内容给 Agent：
 
-当前为 `0.2.0` 迭代版，接口仍可能变化。
+```text
+请阅读 https://raw.githubusercontent.com/lenML/stcn100/main/skill/SKILL.md，然后扫描当前项目中的中文技术文档，根据 stcn100 的建议修复问题。修复后重新运行 stcn100，并汇总已修复项和仍需人工判断的项。
+```
 
 ## 快速开始
 
-无需安装：
+无需安装即可体验：
 
 ```bash
 npx @lenml/stcn100@latest --help
-npx @lenml/stcn100@latest "docs/**/*.md" --profile general,coding
-npx @lenml/stcn100@latest "docs/**/*.md" --rule typo
-npx @lenml/stcn100@latest "docs/**/*.md" --profile general,coding --fix
+npx @lenml/stcn100@latest init
+npx @lenml/stcn100@latest "docs/**/*.md"
+npx @lenml/stcn100@latest "docs/**/*.md" --profile coding
+npx @lenml/stcn100@latest "docs/**/*.md" --profile coding --fix
 ```
 
-本地开发：
+未指定文件时，stcn100 默认扫描 `**/*.{md,markdown,mdx,txt}`。
+
+查看规则：
 
 ```bash
-pnpm install
-pnpm build
-pnpm stcn100 --help
-pnpm stcn100 "docs/**/*.md" --profile general,coding
-pnpm stcn100 "docs/**/*.md" --rule typo
-pnpm stcn100 "docs/**/*.md" --profile general,coding --fix
+npx @lenml/stcn100@latest rules
 ```
+
+只运行指定规则：
+
+```bash
+npx @lenml/stcn100@latest "docs/**/*.md" --rule typo
+npx @lenml/stcn100@latest "docs/**/*.md" --rule typo,repeated-punctuation
+```
+
+输出机器可读结果：
+
+```bash
+npx @lenml/stcn100@latest "docs/**/*.md" --format json
+```
+
+## 工作方式
+
+- `general`：通用中文技术文档规则。
+- `coding`：编程与技术文档场景，包含 `general`。
+- `--fix`：只应用规则明确标记为安全的修复。
+- `stcn100.config.json`：配置规则级别、选项、忽略路径和项目术语。
+
+诊断分为三类：
+
+- `deterministic`：解析和配置确定后，结果可重复，通常可直接修复。
+- `heuristic`：位置可稳定定位，但是否违规依赖上下文，需要人工确认。
+- `semantic`：需要事实源、schema 或完整语义判断，工具只提供候选。
 
 初始化配置：
 
 ```bash
-pnpm stcn100 init
-```
-
-查看内置规则：
-
-```bash
-pnpm stcn100 rules
-```
-
-## 配置
-
-`stcn100.config.json`：
-
-```json
-{
-  "extends": ["general", "coding"],
-  "ignore": ["vendor/**"],
-  "rules": {
-    "sentence-length": ["warning", { "suggestedMax": 30, "hardMax": 40 }],
-    "terminology": [
-      "warning",
-      {
-        "terms": [
-          {
-            "preferred": "配置",
-            "aliases": ["设定"]
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-规则级别：`off`、`info`、`warning`、`error`。命令 `--profile` 会覆盖配置中的 `extends`。
-
-## 内置规则
-
-| 规则 | 默认级别 | 自动修复 | 用途 |
-| --- | --- | --- | --- |
-| `sentence-length` | warning | 否 | 限制单句长度 |
-| `clause-count` | warning | 否 | 限制逗号链和分句数量 |
-| `vague-term` | warning | 否 | 标记模糊条件、数量和范围 |
-| `repeated-punctuation` | error | 是 | 合并重复标点 |
-| `redundant-connective` | warning | 否 | 标记冗余连接结构 |
-| `passive-voice` | warning | 否 | 标记疑似被动表达 |
-| `terminology` | warning | 是 | 统一项目术语 |
-| `typo` | error | 是 | 修复高置信度错词 |
-| `term-casing` | warning | 是 | 统一技术术语大小写 |
-| `term-context` | info | 否 | 提示缩写和简称语境 |
-| `context-word` | info | 否 | 提示依赖语境的近义词 |
-| `jargon` | info | 否 | 标记空泛业务黑话 |
-| `reader-address` | info | 否 | 提示直接称呼读者 |
-| `punctuation-style` | warning | 是 | 统一中文标点和省略号 |
-| `quote-style` | warning | 是 | 统一 `「」` 和 `『』` |
-| `paired-punctuation` | error | 否 | 检查成对标点闭合 |
-| `numeric-spacing` | warning | 是 | 规范数值、单位和时间间距 |
-| `quantity-logic` | warning | 否 | 检测数量倍数和边界冲突 |
-| `cjk-latin-spacing` | info | 是 | 规范中西文留白 |
-| `paragraph-hard-wrap` | warning | 是 | 合并 Markdown 段落硬换行 |
-| `coding/future-tense` | warning | 否 | 减少技术文档未来时态 |
-| `coding/action-nominalization` | warning | 否 | 标记“进行 + 动作名词” |
-| `coding/possibility-language` | info | 否 | 标记无条件可能性表达 |
-
-完整说明见 [规则文档](docs/spec/rules.md)。
-
-## 仓库结构
-
-```text
-packages/core   规则协议、解析、配置、诊断、修复引擎
-packages/rules  通用规则、coding 规则、内置预设
-packages/cli    文件收集、配置加载、文本/JSON 报告
-docs/research   ASD-STE100、中文标准、工具生态调研
-docs/spec       规范、规则、CLI、架构设计
-```
-
-## 开发
-
-```bash
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm check
+npx @lenml/stcn100@latest init
 ```
 
 ## 文档
 
-- [架构设计](docs/spec/architecture.md)
+- [Agent Skill](skill/SKILL.md)
+- [CLI 使用说明](docs/spec/cli.md)
 - [规则规范](docs/spec/rules.md)
-- [CLI 规范](docs/spec/cli.md)
-- [发布说明](docs/spec/release.md)
+- [架构设计](docs/spec/architecture.md)
 - [Tokenizer 规范](docs/spec/tokenization.md)
 - [路线图](docs/roadmap.md)
 - [ASD-STE100 调研](docs/research/asd-ste100.md)
 - [中文写作标准调研](docs/research/chinese-writing-standards.md)
-- [Lint 工具生态调研](docs/research/tooling-landscape.md)
-- [Tech-Doc-Style-Chinese 调研](docs/research/tech-doc-style-chinese.md)
-- [格式化工具兼容性实测](docs/research/formatter-compatibility.md)
+- [格式化工具兼容性](docs/research/formatter-compatibility.md)
+
+## 开发
+
+```bash
+pnpm install
+pnpm check
+pnpm stcn100 "docs/**/*.md" --profile general,coding
+```
 
 ## 边界
 
-`stcn100` 只做可解释的静态检查。长句拆分、指代消解、术语同义判断、事实正确性和安全风险等级仍需人工评审。项目不包含 ASD-STE100、国家标准或其他第三方规范全文。
+stcn100 只做可解释的静态检查。长句拆分和指代消解需要人工评审。被动改主动、事实补全、术语语义和安全风险也需要人工判断。项目不包含 ASD-STE100、国家标准或其他第三方规范全文。
