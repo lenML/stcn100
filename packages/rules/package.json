@@ -1,0 +1,25 @@
+{
+  "name": "@stcn100/rules",
+  "version": "0.1.0",
+  "description": "Built-in Simplified Technical Chinese lint rules",
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@stcn100/core": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

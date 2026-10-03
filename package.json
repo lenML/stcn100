@@ -1,0 +1,24 @@
+{
+  "name": "stcn100",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simplified Technical Chinese rules and lint tooling",
+  "license": "MIT",
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --sort build",
+    "clean": "pnpm -r --sort exec node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "test": "vitest run",
+    "typecheck": "tsc -b --pretty false",
+    "stcn100": "node packages/cli/dist/index.js",
+    "check": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}
