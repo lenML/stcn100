@@ -63,7 +63,7 @@ pnpm stcn100 "docs/**/*.md" --max-warnings 0
 
 ```text
 docs/guide.md
-  12:3  warning  句子长度 35，超过建议上限 30。拆成短句。  sentence-length
+  12:3  warning  heuristic      句子长度 35，超过建议上限 30。拆成短句。  sentence-length
 
 1 files, 0 errors, 1 warnings, 0 infos
 ```
@@ -72,6 +72,7 @@ JSON 格式包含 `summary` 和 `reports`。每个诊断包含：
 
 - `ruleId`
 - `severity`
+- `confidence`
 - `message`
 - `filePath`
 - `loc`
@@ -92,6 +93,19 @@ JSON 格式包含 `summary` 和 `reports`。每个诊断包含：
 
 - 配置只支持 JSON。
 - 不支持 stdin。
-- 不支持行级 disable 指令。
 - 不支持外部插件包加载。
 - `--quiet` 只隐藏 warning/info，不改变退出码计算；JSON 与 text 的 summary 是显示后的摘要。
+
+## 8. 禁用指令
+
+```markdown
+保留原文 <!-- stcn100-disable-line -->
+```
+
+文件级：
+
+```markdown
+<!-- stcn100-disable-file -->
+```
+
+同时兼容 `copy-lint-disable-line` 和 `copy-lint-disable-file`。代码块和 HTML 块中的指令不生效。

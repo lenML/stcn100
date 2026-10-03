@@ -48,7 +48,7 @@ export function formatText(reports: FileReport[], cwd: string): string {
     lines.push(relativePath(report.filePath, cwd));
     for (const diagnostic of report.diagnostics) {
       lines.push(
-        `  ${diagnostic.loc.start.line}:${diagnostic.loc.start.column}  ${diagnostic.severity.padEnd(7)}  ${diagnostic.message}  ${diagnostic.ruleId}`
+        `  ${diagnostic.loc.start.line}:${diagnostic.loc.start.column}  ${diagnostic.severity.padEnd(7)}  ${diagnostic.confidence.padEnd(13)}  ${diagnostic.message}  ${diagnostic.ruleId}`
       );
     }
     lines.push("");

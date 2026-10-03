@@ -41,9 +41,9 @@ describe("runCli", () => {
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     const exitCode = await runCli(["lint", "sample.md", "--fix"], cwd);
-     expect(exitCode).toBe(0);
-     expect(await readFile(path.join(cwd, "sample.md"), "utf8")).toBe("配置服务。\n");
-   });
+    expect(exitCode).toBe(0);
+    expect(await readFile(path.join(cwd, "sample.md"), "utf8")).toBe("配置服务。\n");
+  });
 
   it("rejects invalid max warnings before writing fixes", async () => {
     const cwd = await mkdtemp(path.join(os.tmpdir(), "stcn100-"));
@@ -59,5 +59,17 @@ describe("runCli", () => {
 
     expect(exitCode).toBe(2);
     expect(await readFile(filePath, "utf8")).toBe("失败！！！\n");
+  });
+
+  it("prints the package version", async () => {
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const packageJson = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8")
+    ) as { version: string };
+
+    const exitCode = await runCli(["--version"]);
+
+    expect(exitCode).toBe(0);
+    expect(write).toHaveBeenCalledWith(`${packageJson.version}\n`);
   });
 });

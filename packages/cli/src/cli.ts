@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -24,6 +25,12 @@ Options:
   -h, --help                Show help
   -v, --version             Show version
 `;
+
+const PACKAGE_VERSION = (
+  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+    version: string;
+  }
+).version;
 
 interface CliValues {
   config?: string;
@@ -74,8 +81,12 @@ function commandArguments(positionals: string[]): { command: string; files: stri
 
 function printRules(): void {
   const rows = builtinPlugin.rules
-    ?.map((rule) => `${rule.meta.id.padEnd(34)} ${rule.meta.description}`)
+    ?.map(
+      (rule) =>
+        `${rule.meta.id.padEnd(34)} ${(rule.meta.confidence ?? "heuristic").padEnd(13)} ${(rule.meta.fixable ? "fix" : "---").padEnd(3)} ${rule.meta.description}`
+    )
     .sort();
+  process.stdout.write(`RULE${" ".repeat(30)} CONFIDENCE    FIX DESCRIPTION\n`);
   process.stdout.write(`${rows?.join("\n") ?? ""}\n`);
 }
 
@@ -122,7 +133,7 @@ export async function runCli(argv = process.argv.slice(2), cwd = process.cwd()):
     return 0;
   }
   if (parsed.values.version) {
-    process.stdout.write("0.1.0\n");
+    process.stdout.write(`${PACKAGE_VERSION}\n`);
     return 0;
   }
 
