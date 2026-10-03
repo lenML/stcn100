@@ -7,16 +7,16 @@
 
 ## 1. 结论摘要
 
-1. textlint 最适合借鉴“规则、插件、预设、过滤器分离”的模型。它用 TxtAST 统一文本格式，以 Processor 插件解析 Markdown、纯文本和其他格式，以规则报告和修复，以 0、1、2 区分干净、lint 失败和致命失败。
-2. Vale 最适合借鉴“格式无关 scope + 小型检查器 + 可配置文件规则”的设计。规则作者只声明 scope、check、message、level 和 action，解析与作用域匹配由核心完成。
+1. textlint 最适合借鉴「规则、插件、预设、过滤器分离」的模型。它用 TxtAST 统一文本格式，以 Processor 插件解析 Markdown、纯文本和其他格式，以规则报告和修复，以 0、1、2 区分干净、lint 失败和致命失败。
+2. Vale 最适合借鉴「格式无关 scope + 小型检查器 + 可配置文件规则」的设计。规则作者只声明 scope、check、message、level 和 action，解析与作用域匹配由核心完成。
 3. remark-lint 展示 unified、mdast 和插件管线的优势，但它主要服务 Markdown。其 lint 规则默认产生 warning，CLI 需要 `--frail` 才把 warning 变成非零退出。
-4. markdownlint 最适合借鉴“最小字符区间修复”协议。规则输出 `fixInfo`，核心统一应用修复并处理冲突，不让规则直接重写整篇文档。
+4. markdownlint 最适合借鉴「最小字符区间修复」协议。规则输出 `fixInfo`，核心统一应用修复并处理冲突，不让规则直接重写整篇文档。
 5. ASD-STE checker 类工具的共同点是：词典和术语库是核心资产；句法检查只能覆盖机械规则；语义、风险和主题判断必须保留人工复核。官方明确表示工具不能替代写作者，也不认证任何工具。
 6. stcn100 不应直接绑定 Markdown AST。建议建立格式无关的 `DocumentModel`，由 Processor 适配 Markdown、纯文本，后续再适配代码注释、HTML、XML 等格式。
 7. 建议采用 pnpm monorepo：`core`、`language-zh`、`processor-markdown`、`processor-text`、`rules-*`、`preset-*`、`glossary-*`、`cli`、`test-utils` 分层。现有 `core / rules / cli` 可以作为第一版基线继续演进。
 8. 自动修复只覆盖确定性问题。术语替换、标点、空格和结构格式可以自动修复；长句拆分、指代消解、语义改写、风险等级判断只能给建议。
 9. 规则结果必须携带稳定规则 ID、来源、严重级别、范围、可修复性、证据和置信等级。这样 CLI、编辑器、CI、报告器和未来的语义检查器才能共用同一协议。
-10. 中文场景不能直接复制英语“按空格计词”。应把句长定义为可配置指标，例如汉字数、词法词数、分句数、谓词数，并允许场景预设替换默认指标。
+10. 中文场景不能直接复制英语「按空格计词」。应把句长定义为可配置指标，例如汉字数、词法词数、分句数、谓词数，并允许场景预设替换默认指标。
 
 ## 2. 工具总览
 
@@ -24,8 +24,8 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | textlint | TypeScript / JavaScript | Markdown、纯文本，可加 Processor | rule、filter rule、rule preset、processor plugin、formatter | TxtAST，节点包含 `type`、`raw`、`range`、`loc`、`parent` | 规则通过 `fixer` 提供文本区间修改 | `.textlintrc*`、`package.json`、可共享配置 | `0` 无 error；`1` 有 lint error；`2` 致命错误 |
 | Vale | Go | Markdown、纯文本、AsciiDoc、reStructuredText、HTML、XML 等 | rule、style、package、scope、filter、action | 内部 markup 块和 scope，不向规则作者暴露通用 AST | 规则通过 action 给出替换、删除、大小写或建议 | `.vale.ini`、glob sections、全局配置叠层 | `0` 无 error；`1` 至少一个 error；`2` Vale 无法运行 |
-| remark-lint | TypeScript / JavaScript | Markdown，可扩展 MDX、GFM、frontmatter、math | unified 插件、preset、第三方 lint rule | unified + remark + mdast/unist | 规则主要报告；格式化由 remark-stringify 或其他 transform 完成 | `.remarkrc*`、YAML、JS、`package.json` | 默认 warning 退出 0；`--frail` 使 warning 退出 1 |
-| markdownlint | TypeScript / JavaScript | Markdown / CommonMark、GFM、frontmatter | 内置规则、自定义 rule、markdown-it 插件、formatter | micromark token 优先，兼容 markdown-it token，也可 `parser: "none"` | `fixInfo` 精确描述删除和插入，可重复应用 | JSONC、YAML、JS、extends、目录覆盖、内联注释 | CLI2 为 `0` 无 error；`1` 有 error；`2` 运行失败 |
+| remark-lint | TypeScript / JavaScript | Markdown，可扩展 MDX、GFM、frontmatter、math | unified 插件、preset、第三方 lint rule | unified + remark + mdast/unist | 规则主要报告；格式化由 remark-stringify 或其他 transform 完成 | `.remarkrc*`、YAML、JavaScript、`package.json` | 默认 warning 退出 0；`--frail` 使 warning 退出 1 |
+| markdownlint | TypeScript / JavaScript | Markdown / CommonMark、GFM、frontmatter | 内置规则、自定义 rule、markdown-it 插件、formatter | micromark token 优先，兼容 markdown-it token，也可 `parser: "none"` | `fixInfo` 精确描述删除和插入，可重复应用 | JSONC、YAML、JavaScript、extends、目录覆盖、内联注释 | CLI2 为 `0` 无 error；`1` 有 error；`2` 运行失败 |
 | ASD-STE checker 类 | 多种 | 纯文本、Word、XML、结构化技术文档 | 闭源检查器、术语库、规则配置；开源项目多为固定规则集 | 词典、词性、句法解析、语法规则，公开协议不统一 | 多数给替代词、规则说明和报告，不保证整段自动改写 | 词典、技术名词、技术动词、检查 profile | 无统一约定 |
 | `stilist/text_linter` | Go | 纯文本、stdin | 固定规则集，可读取目录 | 文本规则，不提供通用 AST 生态 | 未强调自动修复 | 内置规则 | 未形成通用协议 |
 
@@ -63,7 +63,7 @@ textlint 是 Node 生态最接近 stcn100 目标的项目。它同时覆盖 Mark
 
 **配置与 CLI**
 
-- 配置支持 JSON、YAML、JS、`package.json`。
+- 配置支持 JSON、YAML、JavaScript、`package.json`。
 - 规则值支持开关、对象选项和 severity：`info`、`warning`、`error`。
 - 支持 `--config`、`--ignore-path`、`--stdin`、`--stdin-filename`、`--format`、`--output-file`、`--quiet`、`--cache`、`--print-config`。
 - 退出码明确：`0` 无 error，`1` lint error，`2` 配置、规则、插件或文件搜索等致命错误。
@@ -93,7 +93,7 @@ Vale 是 Go 编写的 prose linter。它强调 markup-aware scoping，用规则�
 
 - 文件解析后成为带 scope 的块。
 - scope 是 dot-separated parts，例如 Markdown 列表项可以是 `text.list.md`。
-- scope 匹配采用“所有 selector 部分都出现在 block scope 中”，不是前缀或精确匹配。
+- scope 匹配采用「所有 selector 部分都出现在 block scope 中」，不是前缀或精确匹配。
 - 支持 heading、table、list、blockquote、link、code、sentence、paragraph、summary、raw 和 CSS 选择器式 selection。
 - Markdown 默认忽略围栏代码、行内代码、数学、URL 和缩进代码块。
 - 纯文本按段落和句子切分，未知扩展名默认按整块文本处理。
@@ -114,7 +114,7 @@ Vale 是 Go 编写的 prose linter。它强调 markup-aware scoping，用规则�
 
 **对 stcn100 的价值**
 
-- 用“逻辑 scope”替代把 Markdown 节点直接暴露给规则作者。
+- 用「逻辑 scope」替代把 Markdown 节点直接暴露给规则作者。
 - 把大量规则表达为数据，降低编写规则的门槛。
 - 支持 procedural、descriptive、safety、coding 等文本类型不同阈值。
 - action 与诊断分离，便于 CLI、编辑器、agent 共享修复语义。
@@ -123,7 +123,7 @@ Vale 是 Go 编写的 prose linter。它强调 markup-aware scoping，用规则�
 
 **生态定位**
 
-remark-lint 建立在 unified、remark 和 mdast 之上，主要检查 Markdown 的语法和风格一致性。它更接近“AST 管线 + 插件集合”，不是通用中文文本规范引擎。
+remark-lint 建立在 unified、remark 和 mdast 之上，主要检查 Markdown 的语法和风格一致性。它更接近「AST 管线 + 插件集合」，不是通用中文文本规范引擎。
 
 **插件模型**
 
@@ -137,13 +137,13 @@ remark-lint 建立在 unified、remark 和 mdast 之上，主要检查 Markdown 
 
 - mdast 使用 unist 位置模型，节点可以有精确 line、column、offset。
 - 规则通常通过 `file.message()` 报告，再由 reporter 输出。
-- lint 规则主要“检查和报告”，不直接提供与 textlint 或 markdownlint 同等的逐诊断 fix 协议。
+- lint 规则主要「检查和报告」，不直接提供与 textlint 或 markdownlint 同等的逐诊断 fix 协议。
 - 自动格式化依赖 remark-stringify 或其他 transformer，规则配置与 serializer 设置必须手工同步。
 - 只格式化再序列化可能改变未违规内容，因此不适合作为保守 lint fixer。
 
 **配置与 CLI**
 
-- 支持 `.remarkrc`、JSON、YAML、JS、`package.json`。
+- 支持 `.remarkrc`、JSON、YAML、JavaScript、`package.json`。
 - CLI 支持 `--output`、`--frail`、`--quiet`、`--silent`、`--report`。
 - `--frail` 使 warning 退出 1；没有该选项时 warning 默认不失败。
 
@@ -151,7 +151,7 @@ remark-lint 建立在 unified、remark 和 mdast 之上，主要检查 Markdown 
 
 - 借鉴 unified 式管线：parse、extract、analyze、report、serialize 明确分层。
 - 借鉴 mdast/unist 的位置模型和插件生态。
-- 不把“格式化工具”和“语义 lint 工具”混成同一职责。中文规范中的长句、术语和语义规则不能靠重新序列化整篇文档修复。
+- 不把「格式化工具」和「语义 lint 工具」混成同一职责。中文规范中的长句、术语和语义规则不能靠重新序列化整篇文档修复。
 
 ### 3.4 markdownlint 与 markdownlint-cli2
 
@@ -182,7 +182,7 @@ markdownlint 专注于 Markdown / CommonMark，规则数量多，修复协议清
 
 **配置与 CLI**
 
-- 配置支持 JSON、JSONC、YAML、JS、extends、目录级覆盖、per-path override。
+- 配置支持 JSON、JSONC、YAML、JavaScript、extends、目录级覆盖、per-path override。
 - CLI2 支持 glob、`--fix`、`--format`、自定义 formatter。
 - 退出码为：`0` 成功且无 error；`1` 有 error；`2` 运行失败。
 - `--format` 模式从 stdin 读取、修复、写 stdout，适合编辑器格式化协议。
@@ -218,7 +218,7 @@ ASD-STE100 官方把工具分为四类：
 - 术语库必须外置、可版本化、可按项目覆盖。不要把受版权保护的 ASD-STE100 词典内容直接打包。
 - 检查报告要区分确定问题、候选问题、术语问题和人工复核项。
 - 操作文和说明文需要不同阈值与不同规则集。
-- 任何“改写建议”都必须保留原文、规则来源和证据，不能伪装成确定性合规结论。
+- 任何「改写建议」都必须保留原文、规则来源和证据，不能伪装成确定性合规结论。
 
 ## 4. 对比结论
 
@@ -233,7 +233,7 @@ ASD-STE100 官方把工具分为四类：
 | CLI 退出码 | textlint + markdownlint | `0` 干净或全修复，`1` 剩余 error / 超阈值 warning，`2` 致命错误 |
 | 纯文本支持 | textlint + Vale | 一等公民 Processor，不通过 Markdown 模拟 |
 | Markdown 支持 | remark + markdownlint | mdast/token 用于结构识别，原文 range 用于诊断和修复 |
-| 语义边界 | ASD-STE工具实践 | 机械、解析、词典、语义四级置信模型 |
+| 语义边界 | ASD-STE 工具实践 | 机械、解析、词典、语义四级置信模型 |
 
 ## 5. stcn100 架构建议
 
@@ -515,7 +515,7 @@ stcn100 print-config
 
 **代码文档场景**
 
-- 后续 Processor 可解析 JS/TS、Python、Go 等源码注释，但首版不必引入完整 compiler parser。
+- 后续 Processor 可解析 JavaScript/TypeScript、Python、Go 等源码注释，但首版不必引入完整 compiler parser。
 - 代码、命令、路径、URL、字段名、日志、配置值进入保护 span。
 - 编程 preset 只增加场景规则，例如命令使用行内代码、API 名称一致、变量大小写、路径格式。
 

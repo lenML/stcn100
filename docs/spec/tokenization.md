@@ -15,7 +15,7 @@
 7. 固定错词、标点、数字、单位、Markdown 结构不依赖分词。分词只服务词边界、词性、术语和上下文候选。
 8. 默认包不引入原生模块。jieba 适配器独立发包或作为显式可选依赖加载，不复制进核心运行时。
 
-结论：stcn100 的基线应是“无原生依赖的确定性字符/词典层 + 可替换分词层”，不是绑定某个 jieba 实现。
+结论：stcn100 的基线应是「无原生依赖的确定性字符/词典层 + 可替换分词层」，不是绑定某个 jieba 实现。
 
 ## 2. 需求边界
 
@@ -56,7 +56,7 @@ stcn100 需要同时满足：
 
 ### 2.3 完全程序化检测的含义
 
-“程序化”不等于“程序能确定所有语义违规”。稳定方案分三层：
+「程序化」不等于「程序能确定所有语义违规」。稳定方案分三层：
 
 | 层级 | 输出 | 典型规则 |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ stcn100 需要同时满足：
 | `heuristic` | 可复现候选，需要上下文、术语库或白名单 | 被动、动作名词、黑话、长名词簇 |
 | `semantic` | 只能给候选或复核项，不能保证语义等价 | 指代是否明确、因果是否成立、风险是否充分 |
 
-要求是“所有可疑位置都可由程序定位并给证据”，不是“所有语义问题都能由程序无人工确认地判定”。`semantic` 规则也必须输出稳定 span、规则 ID、置信度和解释。
+要求是「所有可疑位置都可由程序定位并给证据」，不是「所有语义问题都能由程序无人工确认地判定」。`semantic` 规则也必须输出稳定 span、规则 ID、置信度和解释。
 
 ## 3. 方案对比
 
@@ -129,7 +129,7 @@ stcn100 需要同时满足：
 
 `segmentit`：
 
-- 纯 JS、无原生依赖，浏览器和 Electron 友好。
+- 纯 JavaScript、无原生依赖，浏览器和 Electron 友好。
 - 支持 POS、同义词、停用词和自定义词典。
 - npm 最新版本 `2.0.3` 发布于 2019；代码内仍是 Flow、旧 Babel/Rollup 和 Travis 配置。
 - 包声明 `module`，但没有 `exports` 和 `"type": "module"`。Node 22 ESM 会解析到 CJS，具名导入 `Segment` 实测失败。
@@ -327,7 +327,7 @@ const defaultTokenizer: Tokenizer = {
 
 默认实现的局限：
 
-- `风控网关`、产品名、缩略语和不常见行业词可能被切碎。
+- 默认分词器无法保证正确切分 `风控网关`、产品名、缩略语和不常见行业词。
 - 没有 POS，被动和动作名词只能使用固定模式。
 - ICU 升级可能改变边界，必须有快照测试。
 - 对 `布署` 这类错词，必须先跑固定错词表；分词结果不能证明词义正确。
@@ -377,7 +377,7 @@ export async function createJiebaTokenizer(
 
 `@node-rs/jieba` 的 `cut()` 和 `tag()` 没有 span。适配器必须：
 
-1. 获得 lossless token 序列。若某 token 被省略，不能猜测位置。
+1. 获得 lossless token 序列。若序列省略某 token，适配器不能猜测位置。
 2. 从 `cursor = 0` 开始，要求 `input.startsWith(word, cursor)`。
 3. 产出 `[cursor, cursor + word.length)`。
 4. 最后断言 `cursor === input.length`。
@@ -409,7 +409,7 @@ function toTokens(words: string[], input: string): Token[] {
 
 - `tag()` 的 `tag` 直接映射到 `Token.pos`，同时把 `posScheme` 固定为 `jieba`。
 - 规则不得假设 `n`、`v`、`nz` 在所有词典中永远稳定。词性只用于缩小候选。
-- `action-nominalization` 需要“空动词 + 动作名词”模式。jieba POS 能提高精度，但最终报告仍是 `heuristic`。
+- `action-nominalization` 需要「空动词 + 动作名词」模式。jieba POS 能提高精度，但最终报告仍是 `heuristic`。
 - `passive-voice` 需要区分 `被`、`被子`、`植被` 等。POS 和词典能降低误报，但不能把中文被动一律判错。
 - `terminology` 仍先走精确术语索引，再参考 token，不能把近义分词结果直接判为同义。
 - `cutAsync` 只适合未来异步 lint 或 worker。当前同步规则接口不要为它改成全异步；大文件可批量 worker。
@@ -523,7 +523,7 @@ function toTokens(words: string[], input: string): Token[] {
 | 新项目通用方案 | 不采用 `segmentit` |
 | 规则基线 | 字符/词表/AST 优先，分词只做增强 |
 
-最终建议：核心保持零原生依赖，接口先稳定；把 `@node-rs/jieba` 做成显式可选适配器。这样既能提供完全程序化的高召回候选，又不会让 CLI 安装、Windows 开发和 CI 被某个分词库锁死。
+最终建议：核心保持零原生依赖，接口先稳定；把 `@node-rs/jieba` 做成显式可选适配器。这样既能提供完全程序化的高召回候选，又能避免某个分词库锁死 CLI 安装、Windows 开发和 CI。
 
 ## 12. 调研来源
 

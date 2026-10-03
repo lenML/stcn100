@@ -18,7 +18,7 @@
 | 级别 | 用途 | 默认退出码 |
 | --- | --- | --- |
 | `error` | 明确违反项目规则，或会破坏渲染、复制和执行 | 1 |
-| `warning` | 高概率问题，可能需要上下文确认 | 0 |
+| `warning` | 高概率问题，需上下文确认 | 0 |
 | `info` | 一致性或维护建议 | 0 |
 | `off` | 关闭规则 | 不影响 |
 
@@ -64,10 +64,17 @@
 | 规则 | 默认级别 | 置信度 | 自动修复 | 用途 |
 | --- | --- | --- | --- | --- |
 | `coding/future-tense` | warning | heuristic | 否 | 减少未来时态 |
-| `coding/action-nominalization` | warning | heuristic | 否 | 标记“进行 + 动作名词” |
-| `coding/possibility-language` | warning | heuristic | 否 | 标记无条件可能性表达 |
+| `coding/action-nominalization` | warning | heuristic | 否 | 标记「进行 + 动作名词」 |
+| `coding/possibility-language` | info | heuristic | 否 | 标记缺少条件或影响说明的推断表达 |
+
+`coding/possibility-language` 属 `heuristic/info`：定位需结合上下文判断的推断表达，默认不产生 warning，也不使命令失败。项目可按写作规范提升级别；提升前应提供事实源或明确判定条件。
 
 ## 4. 规则详情
+
+### `sentence-length`
+
+- 可读单位按一个汉字，或一个拉丁字母/数字词计算。
+- 默认建议上限为 30，硬上限为 40；项目可按文档类型覆盖。
 
 ### `typo`
 
@@ -98,6 +105,8 @@
 - 只检查 Markdown 正文段落和列表续行。
 - 中文接中文不加空格；中文接拉丁或数字加一个空格。
 - 行尾两个空格或反斜杠的显式换行不报告。
+- 与 Prettier `proseWrap: always` 冲突。使用该配置时应关闭本规则。
+- 与 markdownlint 默认 `MD013` 冲突。启用本规则时应关闭或放宽 `MD013`。
 
 ## 5. 禁用指令
 
@@ -147,7 +156,7 @@
 - 被动改主动。
 - 因果关系重写。
 - 空动词结构改写。
-- 可能性改写。
+- 可能性表达改写。
 - 术语同义判断。
 - 数量口径和事实补全。
 - 指代消解。

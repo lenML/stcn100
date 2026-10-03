@@ -92,7 +92,7 @@ pnpm stcn100 rules
 | `paragraph-hard-wrap` | warning | 是 | 合并 Markdown 段落硬换行 |
 | `coding/future-tense` | warning | 否 | 减少技术文档未来时态 |
 | `coding/action-nominalization` | warning | 否 | 标记“进行 + 动作名词” |
-| `coding/possibility-language` | warning | 否 | 标记无条件可能性表达 |
+| `coding/possibility-language` | info | 否 | 标记无条件可能性表达 |
 
 完整说明见 [规则文档](docs/spec/rules.md)。
 
@@ -126,6 +126,7 @@ pnpm check
 - [中文写作标准调研](docs/research/chinese-writing-standards.md)
 - [Lint 工具生态调研](docs/research/tooling-landscape.md)
 - [Tech-Doc-Style-Chinese 调研](docs/research/tech-doc-style-chinese.md)
+- [格式化工具兼容性实测](docs/research/formatter-compatibility.md)
 
 ## 边界
 

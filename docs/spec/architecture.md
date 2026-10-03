@@ -184,6 +184,6 @@ export const teamPlugin = definePlugin({
 - Markdown 解析仍是轻量行解析，不是完整 AST。
 - 跨文件术语、缩写、引用一致性尚未实现。
 - 默认分词无 POS；`@node-rs/jieba` 等适配器尚未发布。
-- JS/TS 配置文件和第三方插件加载尚未实现。
+- JavaScript/TypeScript 配置文件和第三方插件加载尚未实现。
 - 跨块成对标点和复杂嵌套列表仍只能保守处理。
 - 文本框、表格语义和复杂垂直列表只做基础处理。

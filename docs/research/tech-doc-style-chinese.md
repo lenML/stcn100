@@ -16,7 +16,7 @@ Fenng 仓库由三部分组成：
 2. `scripts/lint_copy_rules.py`：轻量正则/状态机检查器，实际程序化规则只覆盖高频词、部分大小写、引号、称呼和少量语境词。
 3. `scripts/unwrap_md_paragraphs.py`：Markdown 段落硬换行检测与重排工具，是仓库中最完整的结构化程序化实现。
 
-因此，上游不是完整的程序化规则引擎，也不能证明“找出所有潜在违反规则”。stcn100 应把规范拆成三层：
+因此，上游不是完整的程序化规则引擎，也不能证明「找出所有潜在违反规则」。stcn100 应把规范拆成三层：
 
 | 分类 | 定义 | 自动修复边界 | 工程目标 |
 | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Fenng 仓库由三部分组成：
 | `heuristic` | 可稳定发现候选，但是否违规取决于语境、词义、领域或团队约定 | 默认只给建议；有项目词表时才可升级为自动修复 | 高召回、可配置、默认不阻断 |
 | `semantic-only` | 需要事实来源、接口 schema、上下文或完整话语逻辑 | 不自动修复 | 提供结构化缺口或外部模型/人工判断接口 |
 
-“完全纯程序化”可以覆盖表面排版、固定词表、Markdown 结构、数字格式和部分 schema 驱动检查。事实保真、指代歧义、状态语义、恢复步骤完整性等不能仅靠规则保证。
+「完全纯程序化」可以覆盖表面排版、固定词表、Markdown 结构、数字格式和部分 schema 驱动检查。事实保真、指代歧义、状态语义、恢复步骤完整性等不能仅靠规则保证。
 
 ## 3. 分类与元数据约定
 
@@ -79,9 +79,9 @@ stcn100 必须持久保护以下区域：
 冲突处理建议：
 
 - 项目产品名、官方拼写、术语表和 schema 优先于通用词表。
-- “中文正文全角标点”不能覆盖代码、路径、英文原文和固定引用。
-- “中西文留白”不能修改 URL、代码、链接目标、版本字符串和机器可读标识符。
-- “一段一行”不能展开表格、代码、引用块、HTML 块和行尾显式换行。
+- 「中文正文全角标点」不能覆盖代码、路径、英文原文和固定引用。
+- 「中西文留白」不能修改 URL、代码、链接目标、版本字符串和机器可读标识符。
+- 「一段一行」不能展开表格、代码、引用块、HTML 块和行尾显式换行。
 - API 状态词不能固定一对一翻译；必须先确认 HTTP 状态、业务状态、任务状态和界面语义。
 - 黑话词、被动句、第二人称、句长等只能作为提示，不能无条件失败。
 
@@ -98,7 +98,7 @@ stcn100 必须持久保护以下区域：
 | `structure/markdown-container` | 保护标题、表格、引用、HTML、front matter 和列表结构 | `deterministic` | `error` | `none` | 用 Markdown source map；错误修复不得跨容器 |
 | `structure/paragraph-hard-wrap` | 检测正文段落和列表项的手工硬换行 | `deterministic` | `warning` | `auto-safe` | 上游 `unwrap_md_paragraphs.py` 已实现结构扫描和拼接；显式硬换行除外 |
 | `structure/topic-per-paragraph` | 一个段落一个主要信息点 | `heuristic` | `info` | `suggest` | 段落过长、主题词跳变、多个列表信号可提高召回 |
-| `structure/list-parallel` | 同层列表句式、密度和标点一致 | `heuristic` | `info` | `suggest` | 需比较同级列表项，可能调用形态分析和句子结构 |
+| `structure/list-parallel` | 同层列表句式、密度和标点一致 | `heuristic` | `info` | `suggest` | 需比较同级列表项；实现可调用形态分析和句子结构 |
 | `structure/repeated-information` | 标题、正文、按钮和表格重复同一信息 | `heuristic` | `info` | `suggest` | 可用相似度、标题/正文映射和 UI 文案结构检测 |
 
 ### 5.2 术语、错词、大小写、黑话和称呼
@@ -116,7 +116,7 @@ stcn100 必须持久保护以下区域：
 | `terminology/contextual-jargon` | 检测依赖语境的业务热词 | `heuristic` | `info` | `none` | 例如 `场景`、`生态`、`体系`、`路径`、`触点`、`卡点`、`布局`、`矩阵`、`颗粒度`、`复盘` |
 | `address/direct-reader` | 第二人称和称呼提示 | `heuristic` | `info` | `suggest` | 检测 `你`、`您`、`同学`；消费产品、帮助文本和品牌规范可允许 |
 | `tone/promotional` | 宣传化、口号式和空泛程度词 | `heuristic` | `info` | `suggest` | 如连续堆叠黑话、感叹号、无法验证的速度/能力主张；不能自行补事实 |
-| `tone/fact-modality` | 可能、计划、建议、通常等确定性变化 | `semantic-only` | `info` | `none` | 可用原稿/改写稿词表差异辅助，但最终需事实对照 |
+| `tone/fact-modality` | `可能`、`计划`、`建议`、`通常` 等确定性变化 | `semantic-only` | `info` | `none` | 可用原稿/改写稿词表差异辅助，但最终需事实对照 |
 
 ### 5.3 标点、中西文留白、数字、单位和日期
 
@@ -130,7 +130,7 @@ stcn100 必须持久保护以下区域：
 | `punctuation/ellipsis` | 中文省略号使用 `……` | `deterministic` | `warning` | `auto-safe` | `...`、`。。。` 等可定位；代码和引用除外 |
 | `punctuation/dash` | 中文破折号使用 `——` | `deterministic` | `warning` | `auto-safe` | `--`、`—` 等先按上下文判断；代码选项和命令不处理 |
 | `punctuation/paired` | 成对符号配对和嵌套 | `deterministic` | `error` | `none` | 括号、引号、书名号和角标可在块内平衡；跨块引用需要保守处理 |
-| `punctuation/list-ending` | 同层列表句末形式一致 | `heuristic` | `info` | `suggest` | 完整句统一句号，短语型可统一无句号；列表内结构可能跨行 |
+| `punctuation/list-ending` | 同层列表句末形式一致 | `heuristic` | `info` | `suggest` | 完整句统一句号，短语型可统一无句号；列表内结构可以跨行 |
 | `punctuation/colon-purpose` | 冒号后确有解释、列举或引用 | `heuristic` | `info` | `suggest` | 单行单独冒号、连续冒号、无内容冒号可高召回提示 |
 | `punctuation/delimiter-clarity` | 破折号、括号、斜线不代替句子组织 | `semantic-only` | `info` | `none` | 可统计密度和嵌套，但关系是否明确需阅读 |
 | `spacing/cjk-latin` | 中文与英文、缩写、数字和版本号间加一个半角空格 | `deterministic` | `warning` | `auto-safe` | 需要 CJK/Latin/digit 边界扫描；URL、代码、字段、链接目标和官方字面量除外 |
@@ -143,7 +143,7 @@ stcn100 必须持久保护以下区域：
 | `number/range-style` | 中文正文数值范围优先使用 `至` | `heuristic` | `info` | `suggest` | `3-5 天` 可提示 `3 至 5 天`；版本、技术范围、代码和固定公式除外 |
 | `date/cjk-format` | 中文日期使用 `YYYY 年 M 月 D 日` | `deterministic` | `warning` | `auto-safe` | 只规范排版，不补年份、不猜测日期 |
 | `date/clock-format` | 数字时间内部不加空格 | `deterministic` | `warning` | `auto-safe` | 例如 `15 : 30→15:30`；不补时区 |
-| `date/timezone` | 跨时区内容包含已知时区 | `heuristic` | `warning` | `suggest` | 缺时区应提示补充，不由所在地猜测 |
+| `date/timezone` | 跨时区内容包含已知时区 | `heuristic` | `warning` | `suggest` | 检查器应提示补时区，不得根据所在地猜测 |
 | `number/unit-required` | 数值带必要单位或量纲 | `semantic-only` | `info` | `none` | 可从列名/参数 schema 检查缺失率；单位是否正确需事实源 |
 | `number/percentage-vs-point` | 百分比与百分点不混用 | `heuristic` | `warning` | `suggest` | 需要基数和前后值；缺少基数时输出待确认 |
 | `number/quantity-magnitude` | 数量倍数和上下界逻辑 | `deterministic` | `error` | `suggest` | 例如 `缩小了 3 倍`、`不超过 100 以上`、`翻了 1 倍`、`预计大约在 3 点左右` |
@@ -156,10 +156,10 @@ stcn100 必须持久保护以下区域：
 | --- | --- | --- | --- | --- | --- |
 | `sentence/length` | 句长超过建议或硬上限 | `heuristic` | `warning` | `suggest` | 计数需定义：汉字、拉丁词、数字和标点权重；不能按字符粗暴判断 |
 | `sentence/clause-stack` | 单句堆叠过多条件、动作和例外 | `heuristic` | `warning` | `suggest` | 分句计数、连接词、动作词可提高召回；拆分需保持条件、否定和因果 |
-| `sentence/passive` | 被动表达可能降低执行清晰度 | `heuristic` | `info` | `suggest` | 检测 `被`、`由...所`、`受到`、`得以`；中文被动并非绝对错误 |
-| `sentence/action-nominalization` | 空动词结构 | `heuristic` | `warning` | `suggest` | 如 `进行 + 动作名词`；删除空动词可能破坏宾语结构 |
+| `sentence/passive` | 被动表达是否降低执行清晰度 | `heuristic` | `info` | `suggest` | 检测 `被`、`由...所`、`受到`、`得以`；中文被动并非绝对错误 |
+| `sentence/action-nominalization` | 空动词结构 | `heuristic` | `warning` | `suggest` | 如 `进行 + 动作名词`；删除空动词时需保留原有宾语结构 |
 | `sentence/future-tense` | 文档中无必要的将来表达 | `heuristic` | `info` | `suggest` | 如 `将会`、`将要`、`届时将`；需判断真实未来行为 |
-| `sentence/possibility-language` | 可能、也许、大概缺少条件或影响 | `heuristic` | `warning` | `suggest` | 需补充触发条件、概率、影响或替代结果；不能自行补事实 |
+| `sentence/possibility-language` | `可能`、`也许`、`大概` 缺少条件或影响 | `heuristic` | `info` | `suggest` | 需补充触发条件、概率、影响或替代结果；不能自行补事实 |
 | `sentence/redundant-connective` | 因果、转折、假设连接词冗余 | `heuristic` | `info` | `suggest` | 如 `因为...所以`、`由于...因此`；删除哪一部分取决于语义 |
 | `reference/ambiguous-pronoun` | `该`、`其`、`此`、`上述` 等指代不清 | `heuristic` | `warning` | `none` | 可检测候选，但目标是否明确需阅读上下文 |
 | `reference/term-consistency` | 后文未沿用首次定义的首选术语 | `heuristic` | `warning` | `suggest` | 项目词表可转成确定性；需处理同形异义和引用 |
@@ -171,13 +171,13 @@ stcn100 必须持久保护以下区域：
 | 建议 ID | 规则 | 分类 | severity | fixability | 实现说明 |
 | --- | --- | --- | --- | --- | --- |
 | `api/machine-readable-preservation` | 状态码、枚举、字段名、路径和响应原文保持原样 | `deterministic` | `error` | `none` | 必须先用 schema 或代码 span 建立保护区 |
-| `api/status-semantic-map` | 英文状态词按实际接口语义翻译 | `semantic-only` | `warning` | `none` | 不能固定把 `Invalid` 翻译为“非法”或把 `Unauthorized` 翻译为“未授权” |
-| `api/status-context-ambiguity` | 同一英文状态在不同接口中可能对应不同中文 | `semantic-only` | `info` | `none` | 需要 HTTP、业务状态、任务状态和 UI 提示上下文 |
+| `api/status-semantic-map` | 英文状态词按实际接口语义翻译 | `semantic-only` | `warning` | `none` | 不能固定把 `Invalid` 翻译为「非法」或把 `Unauthorized` 翻译为「未授权」 |
+| `api/status-context-ambiguity` | 同一英文状态的接口中文映射依赖上下文 | `semantic-only` | `info` | `none` | 需要 HTTP、业务状态、任务状态和 UI 提示上下文 |
 | `api/parameter-contract` | 参数写清类型、格式、必填、单位、默认值、范围、缺省和依赖 | `heuristic` | `warning` | `suggest` | 有 OpenAPI/JSON Schema 时可升级为部分 `deterministic`；否则按表格列检查 |
-| `api/parameter-vague-copy` | 禁止“正常值”“根据情况填写”“相关信息”等不可执行说明 | `heuristic` | `warning` | `suggest` | 固定短语可高精度检测，替换内容需 schema |
+| `api/parameter-vague-copy` | 禁止 `正常值`、`根据情况填写`、`相关信息` 等不可执行说明 | `heuristic` | `warning` | `suggest` | 固定短语可高精度检测，替换内容需 schema |
 | `api/error-structure` | 错误文案包含问题、对象、原因、恢复和诊断信息 | `heuristic` | `warning` | `suggest` | 可按槽位检查；缺失槽位不一定违规，但应提示待确认 |
 | `api/error-recovery` | 恢复步骤正确、可执行且不承诺未知时限 | `semantic-only` | `warning` | `none` | 需要接口行为和失败模式事实源 |
-| `api/error-cause-certainty` | 不把可能原因写成确定原因 | `semantic-only` | `warning` | `none` | 可检测“可能是/一定是”等词变化，但事实仍要核对 |
+| `api/error-cause-certainty` | 不得把待核实原因写成确定原因 | `semantic-only` | `warning` | `none` | 可检测 `可能是`、`一定是` 等词变化，但事实仍要核对 |
 | `api/state-distinction` | 区分请求失败、认证失败、权限不足、资源不存在和状态冲突 | `semantic-only` | `warning` | `none` | 需要状态码、业务错误码和产品定义 |
 | `ui/button-label` | 按钮说明动作和目标，不重复页面标题 | `heuristic` | `info` | `suggest` | 可用标题/按钮相似度和动作词典；最终需界面语境 |
 | `ui/error-copy` | 界面错误提示说明问题、影响和恢复方式 | `heuristic` | `warning` | `suggest` | 与 `api/error-structure` 共享槽位模型 |
@@ -191,13 +191,13 @@ stcn100 必须持久保护以下区域：
 | --- | --- | --- | --- | --- | --- |
 | `controlled/document-scope` | 完整应用、选择性应用、不机械应用 | `deterministic` | `info` | `none` | 由项目配置按文件路径、内容类型或 front matter 选择预设 |
 | `controlled/preserve-facts` | 不新增或删除数字、日期、能力、条件、例外和结论 | `semantic-only` | `error` | `none` | 可做实体和确定性词 diff，但必须对照事实源 |
-| `controlled/one-primary-action` | 一个步骤一个主要动作 | `heuristic` | `warning` | `suggest` | 可检测连动、并列动词和过长步骤；同时动作可能合法 |
+| `controlled/one-primary-action` | 一个步骤一个主要动作 | `heuristic` | `warning` | `suggest` | 可检测连动、并列动词和过长步骤；同时动作在部分流程中合法 |
 | `controlled/condition-before-action` | 条件和风险先于动作 | `heuristic` | `warning` | `suggest` | `如果...`、前置条件、警告和步骤顺序可部分结构化 |
 | `controlled/actor-clarity` | 明确执行者、对象和结果 | `semantic-only` | `warning` | `none` | 可检查主语缺失和角色词，但自动行为与人工行为需语义判断 |
 | `controlled/action-boundary` | 有条件、否定和因果关系时不过度拆句 | `semantic-only` | `warning` | `none` | 必须保留否定范围、条件和因果 |
 | `controlled/logical-order` | 操作、排查和恢复按实际执行顺序排列 | `semantic-only` | `warning` | `none` | 需要流程、依赖和风险事实 |
 | `controlled/troubleshooting-structure` | 故障排查包含现象、证据、检查、判断、原因、恢复和停止条件 | `heuristic` | `warning` | `suggest` | 可按标题和字段槽位检查；内容真实性不在规则内 |
-| `controlled/uncertainty` | 保留“可能、建议、通常、计划”等确定程度 | `semantic-only` | `warning` | `none` | 词表 diff 可辅助，不能证明事实未变化 |
+| `controlled/uncertainty` | 保留 `可能`、`建议`、`通常`、`计划` 等确定程度 | `semantic-only` | `warning` | `none` | 词表 diff 可辅助，不能证明事实未变化 |
 | `controlled/over-simplification` | 不因短句删除限制、失败处理和例外 | `semantic-only` | `error` | `none` | 需要原文/改写稿结构对照 |
 | `controlled/content-type-exclusion` | 品牌文案、叙事、法律原文和固定引用不机械套用 | `deterministic` | `info` | `none` | 项目配置、front matter 或路径规则决定预设 |
 
@@ -280,7 +280,7 @@ const tokens = [...segmenter.segment(text)].map((item) => item.segment);
 -> 使用 | API | 获取 | 数据 | 并 | 布 | 署 | 服务
 ```
 
-`布署` 被拆成两个 token，不能靠分词发现错词。正确顺序是：
+分词器把 `布署` 拆成两个 token，不能靠分词发现错词。正确顺序是：
 
 1. 先屏蔽保护区。
 2. 先跑固定错词和项目词表。
@@ -295,7 +295,7 @@ interface ChineseTokenizer {
 }
 ```
 
-默认实现用 `Intl.Segmenter` 和项目词典；必要时再接 `jieba` 的 Node/WASM 实现，但不要绑定单一库。确定性规则应优先依赖字符边界、词表和 AST，而不是依赖某个分词器版本。
+默认实现用 `Intl.Segmenter` 和项目词典；项目需要 POS 或领域词表增强时，再接 `jieba` 的 Node/WASM 实现，但不要绑定单一库。确定性规则应优先依赖字符边界、词表和 AST，而不是依赖某个分词器版本。
 
 ## 8. 推荐迭代顺序
 
@@ -319,7 +319,7 @@ interface ChineseTokenizer {
 
 ### P3：结构与启发式
 
-- 句长、分句、被动、动作名词、将来表达、可能性语言和指代候选。
+- 句长、分句、被动、动作名词、将来表达、可能性表达和指代候选。
 - 段落主题、列表平行、标题、入口页和 UI 文案槽位。
 - 输出建议，不默认自动修复。
 
@@ -329,7 +329,7 @@ interface ChineseTokenizer {
 - API 状态、错误码、恢复步骤和事实保真对照。
 - 外部模型或人工审阅作为可选插件，不让核心规则依赖模型。
 
-## 9. 对“找出所有潜在违反规则”的工程边界
+## 9. 对「找出所有潜在违反规则」的工程边界
 
 可以高置信程序化：
 
