@@ -18,8 +18,10 @@
 先登录 npmjs：
 
 ```bash
-pnpm login
+pnpm npm:login
 ```
+
+该脚本仅对登录命令指定 `https://registry.npmjs.org/`，不会修改本地 npm 镜像配置。
 
 ## 发布
 

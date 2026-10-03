@@ -13,6 +13,7 @@
     "clean": "pnpm -r --sort exec node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "test": "vitest run",
     "typecheck": "tsc -b --pretty false",
+    "npm:login": "npm login --registry=https://registry.npmjs.org/",
     "stcn100": "node packages/cli/dist/index.js",
     "check": "pnpm typecheck && pnpm test && pnpm build"
   },
