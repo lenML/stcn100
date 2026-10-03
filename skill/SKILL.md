@@ -56,7 +56,7 @@ Run one rule or a small set when isolating behavior:
 
 ```bash
 stcn100 "docs/**/*.md" --rule typo
-stcn100 "docs/**/*.md" --rule typo,repeated-punctuation
+stcn100 "docs/**/*.md" --rule "typo,repeated-punctuation"
 stcn100 "docs/**/*.md" -r typo -r sentence-length
 ```
 

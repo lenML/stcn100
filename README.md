@@ -39,7 +39,7 @@ npx @lenml/stcn100@latest rules
 
 ```bash
 npx @lenml/stcn100@latest "docs/**/*.md" --rule typo
-npx @lenml/stcn100@latest "docs/**/*.md" --rule typo,repeated-punctuation
+npx @lenml/stcn100@latest "docs/**/*.md" --rule "typo,repeated-punctuation"
 ```
 
 输出机器可读结果：
@@ -84,7 +84,7 @@ npx @lenml/stcn100@latest init
 ```bash
 pnpm install
 pnpm check
-pnpm stcn100 "docs/**/*.md" --profile general,coding
+pnpm stcn100 "docs/**/*.md" --profile "general,coding"
 ```
 
 ## 边界
