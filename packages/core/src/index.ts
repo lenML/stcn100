@@ -2,20 +2,24 @@ export { createRegistry, defineConfig, definePlugin, defineRule, resolveConfig }
 export { lint } from "./engine.js";
 export type { LintOptions, LintResult } from "./engine.js";
 export { parseDocument } from "./parser.js";
+export { defaultTokenizer, IntlWordTokenizer } from "./tokenizer.js";
 export {
   countReadableUnits,
   findMatches,
   findTermMatches,
   getLineStarts,
+  joinChineseLines,
   locationAt,
   positionAt
 } from "./text.js";
 export type { RegexMatch } from "./text.js";
 export type {
   BlockKind,
+  Confidence,
   Diagnostic,
   DiagnosticFix,
   Document,
+  HardWrap,
   Location,
   Plugin,
   Position,
@@ -32,5 +36,7 @@ export type {
   Severity,
   SeveritySetting,
   StcnConfig,
-  TextBlock
+  TextBlock,
+  Token,
+  Tokenizer
 } from "./types.js";

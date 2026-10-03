@@ -1,5 +1,20 @@
 export type Severity = "off" | "info" | "warning" | "error";
 
+export type Confidence = "deterministic" | "heuristic" | "semantic";
+
+export interface Token {
+  text: string;
+  start: number;
+  end: number;
+  kind: "word" | "number" | "punctuation" | "space" | "symbol";
+  pos?: string;
+}
+
+export interface Tokenizer {
+  name: string;
+  tokenize(text: string): Token[];
+}
+
 export interface Position {
   line: number;
   column: number;
@@ -25,6 +40,7 @@ export interface Diagnostic {
   severity: Exclude<Severity, "off">;
   message: string;
   filePath: string;
+  confidence: Confidence;
   loc: Location;
   fix?: DiagnosticFix;
   data?: Record<string, unknown>;
@@ -52,12 +68,21 @@ export interface Document {
   sourceType: "markdown" | "text";
   lineStarts: number[];
   blocks: TextBlock[];
+  hardWraps: HardWrap[];
+  disabledLines: number[];
+}
+
+export interface HardWrap {
+  range: [start: number, end: number];
+  startLine: number;
+  endLine: number;
 }
 
 export interface RuleMeta {
   id: string;
   description: string;
   category: "clarity" | "consistency" | "structure" | "punctuation";
+  confidence?: Confidence;
   fixable?: boolean;
   docs?: string;
 }
@@ -73,6 +98,7 @@ export interface RuleReport {
 
 export interface RuleContext {
   filePath: string;
+  tokenize(text: string): Token[];
   report(report: RuleReport): void;
 }
 

@@ -1,12 +1,14 @@
 import { parseDocument } from "./parser.js";
 import { locationAt } from "./text.js";
+import { defaultTokenizer } from "./tokenizer.js";
 import type {
   Diagnostic,
   Document,
   ResolvedConfig,
   RuleContext,
   RuleModule,
-  RuleRegistry
+  RuleRegistry,
+  Tokenizer
 } from "./types.js";
 
 export interface LintOptions {
@@ -14,6 +16,7 @@ export interface LintOptions {
   source: string;
   config: ResolvedConfig;
   registry: RuleRegistry;
+  tokenizer?: Tokenizer;
   fix?: boolean;
 }
 
@@ -23,7 +26,12 @@ export interface LintResult {
   fixed: boolean;
 }
 
-function lintDocument(document: Document, config: ResolvedConfig, registry: RuleRegistry): Diagnostic[] {
+function lintDocument(
+  document: Document,
+  config: ResolvedConfig,
+  registry: RuleRegistry,
+  tokenizer: Tokenizer
+): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
   for (const [ruleId, setting] of Object.entries(config.rules)) {
@@ -39,6 +47,9 @@ function lintDocument(document: Document, config: ResolvedConfig, registry: Rule
 
     const context: RuleContext = {
       filePath: document.filePath,
+      tokenize(text): ReturnType<Tokenizer["tokenize"]> {
+        return tokenizer.tokenize(text);
+      },
       report(report): void {
         const start = report.block.range[0] + report.start;
         const end = report.block.range[0] + report.end;
@@ -57,6 +68,7 @@ function lintDocument(document: Document, config: ResolvedConfig, registry: Rule
           severity,
           message: report.message,
           filePath: document.filePath,
+          confidence: rule.meta.confidence ?? "heuristic",
           loc: locationAt(document.source, start, end, document.lineStarts)
         };
 
@@ -74,12 +86,15 @@ function lintDocument(document: Document, config: ResolvedConfig, registry: Rule
     (rule as RuleModule<unknown>).check(document, setting.options, context);
   }
 
-  return diagnostics.sort((left, right) => {
-    return (
-      left.loc.start.offset - right.loc.start.offset ||
-      left.ruleId.localeCompare(right.ruleId)
-    );
-  });
+  const disabledLines = new Set(document.disabledLines);
+  return diagnostics
+    .filter((diagnostic) => !disabledLines.has(diagnostic.loc.start.line))
+    .sort((left, right) => {
+      return (
+        left.loc.start.offset - right.loc.start.offset ||
+        left.ruleId.localeCompare(right.ruleId)
+      );
+    });
 }
 
 function fixDiagnostics(source: string, diagnostics: Diagnostic[]): { output: string; applied: number } {
@@ -87,21 +102,35 @@ function fixDiagnostics(source: string, diagnostics: Diagnostic[]): { output: st
     .filter((diagnostic): diagnostic is Diagnostic & { fix: NonNullable<Diagnostic["fix"]> } => {
       return diagnostic.fix !== undefined;
     })
-    .sort((left, right) => left.fix.range[0] - right.fix.range[0] || left.fix.range[1] - right.fix.range[1]);
+    .sort((left, right) => left.fix.range[0] - right.fix.range[0] || right.fix.range[1] - left.fix.range[1]);
 
   const accepted: NonNullable<Diagnostic["fix"]>[] = [];
-  let previousEnd = -1;
   for (const fix of fixes.map((diagnostic) => diagnostic.fix)) {
-    if (
-      fix.range[0] < 0 ||
-      fix.range[0] < previousEnd ||
-      fix.range[0] > fix.range[1] ||
-      fix.range[1] > source.length
-    ) {
+    if (fix.range[0] < 0 || fix.range[0] > fix.range[1] || fix.range[1] > source.length) {
       continue;
     }
-    accepted.push(fix);
-    previousEnd = fix.range[1];
+
+    const conflict = accepted.find(
+      (existing) =>
+        (fix.range[0] === fix.range[1] &&
+          (fix.range[0] === existing.range[0] || fix.range[0] === existing.range[1])) ||
+        (fix.range[0] < existing.range[1] && fix.range[1] > existing.range[0])
+    );
+    if (!conflict) {
+      accepted.push({ ...fix, range: [...fix.range] });
+      continue;
+    }
+
+    const insertion = fix.range[0] === fix.range[1];
+    if (insertion && fix.range[0] === conflict.range[0]) {
+      if (conflict.range[0] === conflict.range[1]) {
+        conflict.text += fix.text;
+      } else {
+        conflict.text = fix.text + conflict.text;
+      }
+    } else if (insertion && fix.range[0] === conflict.range[1]) {
+      conflict.text += fix.text;
+    }
   }
 
   let output = source;
@@ -114,8 +143,9 @@ function fixDiagnostics(source: string, diagnostics: Diagnostic[]): { output: st
 
 export function lint(options: LintOptions): LintResult {
   let source = options.source;
+  const tokenizer = options.tokenizer ?? defaultTokenizer;
   let document = parseDocument(options.filePath, source);
-  let diagnostics = lintDocument(document, options.config, options.registry);
+  let diagnostics = lintDocument(document, options.config, options.registry, tokenizer);
   let fixed = false;
 
   for (let pass = 0; options.fix && pass < 10; pass += 1) {
@@ -126,7 +156,7 @@ export function lint(options: LintOptions): LintResult {
     fixed = true;
     source = result.output;
     document = parseDocument(options.filePath, source);
-    diagnostics = lintDocument(document, options.config, options.registry);
+    diagnostics = lintDocument(document, options.config, options.registry, tokenizer);
   }
 
   return { diagnostics, output: source, fixed };

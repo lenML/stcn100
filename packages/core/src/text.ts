@@ -80,6 +80,52 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const WIDE_CHARACTER = /[\p{Script=Han}\u3000-\u303f\uff00-\uffef]/u;
+const WIDE_PUNCTUATION = /[\u3001\u3002\uff01\uff08\uff09\uff0c\uff1a\uff1b\uff1f\u2014\u2026\u300a-\u3011\u300c\u300d]/u;
+const ASCII_TRAILING_NO_SPACE = new Set(["(", "[", "{", "<", "-", "/", "@", "#", "$", "&", "+", "=", "\\", "\"", "'"]);
+const ASCII_LEADING_NO_SPACE = new Set([",", ".", ";", ":", "!", "?", ")", "]", "}", ">", "%", "\"", "'"]);
+
+function visibleTail(value: string): string {
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    const character = value[index] ?? "";
+    if (!"*_~`".includes(character)) {
+      return character;
+    }
+  }
+  return "";
+}
+
+function visibleHead(value: string): string {
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index] ?? "";
+    if (!"*_~`[".includes(character)) {
+      return character;
+    }
+  }
+  return "";
+}
+
+export function joinChineseLines(left: string, right: string): string {
+  const tail = visibleTail(left);
+  const head = visibleHead(right);
+  if (!tail || !head) {
+    return "";
+  }
+  if (WIDE_CHARACTER.test(tail) || WIDE_CHARACTER.test(head)) {
+    if (WIDE_CHARACTER.test(tail) && WIDE_CHARACTER.test(head)) {
+      return "";
+    }
+    if (WIDE_PUNCTUATION.test(tail) || WIDE_PUNCTUATION.test(head)) {
+      return "";
+    }
+    return " ";
+  }
+  if (ASCII_TRAILING_NO_SPACE.has(tail) || ASCII_LEADING_NO_SPACE.has(head)) {
+    return "";
+  }
+  return " ";
+}
+
 export function findTermMatches(text: string, terms: string[]): RegexMatch[] {
   const candidates: Array<RegexMatch & { termLength: number }> = [];
 
